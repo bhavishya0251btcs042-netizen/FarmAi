@@ -1,46 +1,97 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" class="dark scroll-smooth">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FarmAI | Register</title>
     <link rel="icon" type="image/png" href="logo/logo.png">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
-            theme: { extend: { fontFamily: { sans: ['Plus Jakarta Sans','sans-serif'], display: ['Outfit','sans-serif'] }, colors: { brand: { 500: '#10b981', 600: '#059669' }, deep: '#020617' } } }
+            theme: { extend: { fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'], display: ['Outfit', 'sans-serif'] }, colors: { brand: { 500: '#10b981', 600: '#059669' }, deep: '#020617' } } }
         }
     </script>
     <style>
-        body { background-color: #020617; }
-        .input-field { background: rgba(30,41,59,0.5); border: 1px solid rgba(148,163,184,0.1); transition: all 0.3s ease; }
-        .input-field:focus { border-color: #10b981; background: rgba(30,41,59,0.8); box-shadow: 0 0 0 4px rgba(16,185,129,0.1); }
-        .btn-primary { background: linear-gradient(135deg,#10b981 0%,#059669 100%); transition: all 0.3s cubic-bezier(0.4,0,0.2,1); }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(16,185,129,0.4); }
-        .hero-img { background-image: url('logo/farmer_bg.png'); background-size: cover; background-position: center; }
-        @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-        .animate-fadeIn { animation: fadeIn 0.8s ease-out forwards; }
-        .strength-bar { height: 4px; border-radius: 2px; transition: all 0.3s; }
+        body {
+            background-color: #020617;
+        }
+
+        .input-field {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            border-color: #10b981;
+            background: rgba(30, 41, 59, 0.8);
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.4);
+        }
+
+        .hero-img {
+            background-image: url('logo/farmer_bg.png');
+            background-size: cover;
+            background-position: center;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fadeIn {
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+
+        .strength-bar {
+            height: 4px;
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
     </style>
 </head>
+
 <body class="min-h-screen flex font-sans text-slate-200">
 
     <div class="hidden lg:flex lg:w-1/2 relative overflow-hidden hero-img">
         <div class="absolute inset-0 bg-gradient-to-t from-deep via-transparent to-transparent opacity-80"></div>
         <div class="absolute bottom-12 left-12 max-w-lg animate-fadeIn">
-            <h2 class="font-display text-5xl font-bold text-white mb-6 leading-tight">Harvest the Power of <span class="text-brand-500">Knowledge</span>.</h2>
-            <p class="text-slate-300 text-lg leading-relaxed">Start your journey towards a more productive farm with AI-powered insights.</p>
+            <h2 class="font-display text-5xl font-bold text-white mb-6 leading-tight">Harvest the Power of <span
+                    class="text-brand-500">Knowledge</span>.</h2>
+            <p class="text-slate-300 text-lg leading-relaxed">Start your journey towards a more productive farm with
+                AI-powered insights.</p>
         </div>
     </div>
 
     <div class="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 bg-deep overflow-y-auto">
         <div class="w-full max-w-md animate-fadeIn my-12">
             <div class="mb-10 text-center flex flex-col items-center">
-                <div class="w-16 h-16 rounded-2xl bg-brand-500/10 flex items-center justify-center border border-brand-500/20 mb-4 p-2">
+                <div
+                    class="w-16 h-16 rounded-2xl bg-brand-500/10 flex items-center justify-center border border-brand-500/20 mb-4 p-2">
                     <img src="logo/logo.png" alt="FarmAI" class="w-full h-full object-contain">
                 </div>
                 <h1 class="font-display text-4xl font-bold tracking-tight text-white mb-2">Create Account</h1>
@@ -51,21 +102,28 @@
                 <!-- Username -->
                 <div>
                     <label class="block text-sm font-semibold text-slate-300 mb-2">Username</label>
-                    <input type="text" id="username" required class="input-field w-full px-4 py-3 rounded-xl text-white outline-none" placeholder="Choose a unique username">
+                    <input type="text" id="username" required
+                        class="input-field w-full px-4 py-3 rounded-xl text-white outline-none"
+                        placeholder="Choose a unique username">
                 </div>
 
                 <!-- Email -->
                 <div>
                     <label class="block text-sm font-semibold text-slate-300 mb-2">Email Address</label>
-                    <input type="email" id="email" required class="input-field w-full px-4 py-3 rounded-xl text-white outline-none" placeholder="your@email.com">
+                    <input type="email" id="email" required
+                        class="input-field w-full px-4 py-3 rounded-xl text-white outline-none"
+                        placeholder="your@email.com">
                 </div>
 
                 <!-- Password -->
                 <div>
                     <label class="block text-sm font-semibold text-slate-300 mb-2">Password</label>
                     <div class="relative">
-                        <input type="password" id="password" required class="input-field w-full px-4 py-3 pr-12 rounded-xl text-white outline-none" placeholder="••••••••" oninput="checkStrength(this.value)">
-                        <button type="button" onclick="togglePass('password', this)" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white">
+                        <input type="password" id="password" required
+                            class="input-field w-full px-4 py-3 pr-12 rounded-xl text-white outline-none"
+                            placeholder="••••••••" oninput="checkStrength(this.value)">
+                        <button type="button" onclick="togglePass('password', this)"
+                            class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white">
                             <i class="fas fa-eye"></i>
                         </button>
                     </div>
@@ -86,8 +144,11 @@
                 <div>
                     <label class="block text-sm font-semibold text-slate-300 mb-2">Confirm Password</label>
                     <div class="relative">
-                        <input type="password" id="confirmPassword" required class="input-field w-full px-4 py-3 pr-12 rounded-xl text-white outline-none" placeholder="••••••••">
-                        <button type="button" onclick="togglePass('confirmPassword', this)" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white">
+                        <input type="password" id="confirmPassword" required
+                            class="input-field w-full px-4 py-3 pr-12 rounded-xl text-white outline-none"
+                            placeholder="••••••••">
+                        <button type="button" onclick="togglePass('confirmPassword', this)"
+                            class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white">
                             <i class="fas fa-eye"></i>
                         </button>
                     </div>
@@ -97,11 +158,14 @@
                 <div>
                     <label class="block text-sm font-semibold text-slate-300 mb-2 flex justify-between items-center">
                         <span>Farm Address (Optional)</span>
-                        <button type="button" onclick="detectLocation()" class="text-[10px] text-brand-500 hover:text-brand-400 font-bold uppercase tracking-widest flex items-center gap-1">
+                        <button type="button" onclick="detectLocation()"
+                            class="text-[10px] text-brand-500 hover:text-brand-400 font-bold uppercase tracking-widest flex items-center gap-1">
                             <i class="fas fa-location-crosshairs"></i> Auto-Detect
                         </button>
                     </label>
-                    <textarea id="address" rows="2" class="input-field w-full px-4 py-3 rounded-xl text-white outline-none" placeholder="e.g. 124 Rural Valley, District, State"></textarea>
+                    <textarea id="address" rows="2"
+                        class="input-field w-full px-4 py-3 rounded-xl text-white outline-none"
+                        placeholder="e.g. 124 Rural Valley, District, State"></textarea>
                 </div>
 
                 <!-- Profile Picture -->
@@ -109,10 +173,13 @@
                     <label class="block text-sm font-semibold text-slate-300 mb-2">Profile Picture (Optional)</label>
                     <div class="flex items-center gap-4 p-4 rounded-xl bg-slate-900/50 border border-slate-800">
                         <div class="relative w-16 h-16 group">
-                            <img id="preview" src="https://ui-avatars.com/api/?name=User&background=10b981&color=fff" class="w-full h-full rounded-xl object-cover border-2 border-slate-700 group-hover:border-brand-500 transition-all">
-                            <label for="profilePic" class="absolute inset-0 flex items-center justify-center bg-black/40 rounded-xl opacity-0 group-hover:opacity-100 cursor-pointer transition-all">
+                            <img id="preview" src="https://ui-avatars.com/api/?name=User&background=10b981&color=fff"
+                                class="w-full h-full rounded-xl object-cover border-2 border-slate-700 group-hover:border-brand-500 transition-all">
+                            <label for="profilePic"
+                                class="absolute inset-0 flex items-center justify-center bg-black/40 rounded-xl opacity-0 group-hover:opacity-100 cursor-pointer transition-all">
                                 <i class="fas fa-camera text-white text-sm"></i>
-                                <input type="file" id="profilePic" accept="image/*" class="hidden" onchange="previewImage(this)">
+                                <input type="file" id="profilePic" accept="image/*" class="hidden"
+                                    onchange="previewImage(this)">
                             </label>
                         </div>
                         <div>
@@ -122,12 +189,14 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn-primary w-full py-4 mt-2 rounded-xl text-white font-bold tracking-wide text-lg shadow-lg">
+                <button type="submit"
+                    class="btn-primary w-full py-4 mt-2 rounded-xl text-white font-bold tracking-wide text-lg shadow-lg">
                     Create Account
                 </button>
 
                 <p class="text-center text-slate-400 mt-4 font-medium">
-                    Already have an account? <a href="/login-page" class="text-brand-500 hover:text-brand-400">Log In</a>
+                    Already have an account? <a href="/login-page" class="text-brand-500 hover:text-brand-400">Log
+                        In</a>
                 </p>
             </form>
         </div>
@@ -136,10 +205,10 @@
     <script>
         // ---- EmailJS config (read from meta or hardcode after filling .env) ----
         // These will be injected from sessionStorage after you fill .env
-        const EMAILJS_PUBLIC_KEY       = 'YOUR_EMAILJS_PUBLIC_KEY';
-        const EMAILJS_SERVICE_ID       = 'YOUR_EMAILJS_SERVICE_ID';
-        const EMAILJS_WELCOME_TEMPLATE = 'YOUR_WELCOME_TEMPLATE_ID';
-        const EMAILJS_VERIFY_TEMPLATE  = 'YOUR_VERIFY_TEMPLATE_ID';
+        const EMAILJS_PUBLIC_KEY = 'fe1OPRE83Olo1UpvC';
+        const EMAILJS_SERVICE_ID = 'service_o423n18';
+        const EMAILJS_WELCOME_TEMPLATE = 'template_blm3kis';
+        const EMAILJS_VERIFY_TEMPLATE = 'template_8a6wdem';
 
         emailjs.init(EMAILJS_PUBLIC_KEY);
 
@@ -160,14 +229,14 @@
 
         function generateStrongPassword() {
             const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%';
-            return Array.from({length: 14}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+            return Array.from({ length: 14 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
         }
 
         function checkStrength(val) {
             const bars = [document.getElementById('s1'), document.getElementById('s2'),
-                          document.getElementById('s3'), document.getElementById('s4')];
+            document.getElementById('s3'), document.getElementById('s4')];
             const label = document.getElementById('strengthLabel');
-            const tip   = document.getElementById('strengthTip');
+            const tip = document.getElementById('strengthTip');
 
             bars.forEach(b => { b.style.backgroundColor = '#334155'; });
 
@@ -175,13 +244,13 @@
 
             let score = 0;
             const tips = [];
-            if (val.length >= 8)  score++; else tips.push('at least 8 characters');
+            if (val.length >= 8) score++; else tips.push('at least 8 characters');
             if (/[A-Z]/.test(val)) score++; else tips.push('an uppercase letter');
             if (/[0-9]/.test(val)) score++; else tips.push('a number');
             if (/[^A-Za-z0-9]/.test(val)) score++; else tips.push('a special character (!@#$)');
 
-            const colors = ['#ef4444','#f97316','#eab308','#10b981'];
-            const labels = ['Weak','Fair','Good','Strong'];
+            const colors = ['#ef4444', '#f97316', '#eab308', '#10b981'];
+            const labels = ['Weak', 'Fair', 'Good', 'Strong'];
             for (let i = 0; i < score; i++) bars[i].style.backgroundColor = colors[score - 1];
             label.textContent = labels[score - 1] || '';
             label.style.color = colors[score - 1] || '#64748b';
@@ -197,9 +266,9 @@
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const password = document.getElementById('password').value;
-            const confirm  = document.getElementById('confirmPassword').value;
+            const confirm = document.getElementById('confirmPassword').value;
             if (password !== confirm) { showToast('Passwords do not match!', 'error'); return; }
-            if (password.length < 8)  { showToast('Password must be at least 8 characters', 'error'); return; }
+            if (password.length < 8) { showToast('Password must be at least 8 characters', 'error'); return; }
 
             const btn = e.target.querySelector('button[type="submit"]');
             btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Creating...';
@@ -207,36 +276,29 @@
 
             const formData = new FormData();
             formData.append('username', document.getElementById('username').value);
-            formData.append('email',    document.getElementById('email').value);
+            formData.append('email', document.getElementById('email').value);
             formData.append('password', password);
-            formData.append('address',  document.getElementById('address').value);
+            formData.append('address', document.getElementById('address').value);
             const pic = document.getElementById('profilePic');
             if (pic.files[0]) formData.append('profile_picture', pic.files[0]);
 
             try {
-                const res  = await fetch('/register', { method: 'POST', body: formData });
+                const res = await fetch('/register', { method: 'POST', body: formData });
                 const data = await res.json();
 
                 if (res.ok) {
                     // Store pending data for verify page
                     sessionStorage.setItem('pending_register', JSON.stringify({
                         username: data.username,
-                        email:    data.email,
-                        otp:      data.otp,
-                        emailjs_public_key:       EMAILJS_PUBLIC_KEY,
-                        emailjs_service_id:       EMAILJS_SERVICE_ID,
-                        emailjs_verify_template_id: EMAILJS_VERIFY_TEMPLATE
+                        email: data.email,
+                        otp: data.otp,
+                        emailjs_public_key: EMAILJS_PUBLIC_KEY,
+                        emailjs_service_id: EMAILJS_SERVICE_ID,
+                        emailjs_verify_template_id: EMAILJS_VERIFY_TEMPLATE,
+                        emailjs_welcome_template_id: EMAILJS_WELCOME_TEMPLATE
                     }));
 
-                    // Send welcome email
-                    try {
-                        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_WELCOME_TEMPLATE, {
-                            to_email: data.email,
-                            to_name:  data.username
-                        });
-                    } catch(emailErr) { console.warn('Welcome email failed:', emailErr); }
-
-                    window.location.href = '/verify';
+                    window.location.href = '/verify-page';
                 } else {
                     showToast(data.detail || 'Registration failed', 'error');
                 }
@@ -263,10 +325,312 @@
             const div = document.createElement('div');
             const c = type === 'success' ? 'bg-brand-500/10 border-brand-500/20 text-brand-500' : 'bg-red-500/10 border-red-500/20 text-red-400';
             div.className = `fixed top-6 right-6 ${c} border px-6 py-4 rounded-xl backdrop-blur-md shadow-2xl z-50 animate-fadeIn`;
-            div.innerHTML = `<i class="fas fa-${type==='success'?'check-circle':'exclamation-circle'} mr-2"></i>${msg}`;
+            div.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} mr-2"></i>${msg}`;
             document.body.appendChild(div);
             setTimeout(() => div.remove(), 4000);
         }
     </script>
+
+    <!-- ===== FarmAI Chatbot Widget ===== -->
+    <style>
+        #farmbot-btn {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            z-index: 9999;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 8px 32px rgba(16, 185, 129, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        #farmbot-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 40px rgba(16, 185, 129, 0.5);
+        }
+
+        #farmbot-btn .bot-notif {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            width: 18px;
+            height: 18px;
+            background: #ef4444;
+            border-radius: 50%;
+            font-size: 10px;
+            font-weight: 800;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #020617;
+        }
+
+        #farmbot-window {
+            position: fixed;
+            bottom: 100px;
+            right: 28px;
+            z-index: 9998;
+            width: 370px;
+            max-height: 560px;
+            background: #0f172a;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 24px;
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transform: scale(0.8) translateY(20px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            pointer-events: none;
+        }
+
+        #farmbot-window.bot-open {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        @media(max-width:480px) {
+            #farmbot-window {
+                width: calc(100vw - 32px);
+                right: 16px;
+                bottom: 90px;
+            }
+        }
+
+        .bot-header {
+            background: linear-gradient(135deg, #10b981, #059669);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .bot-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .bot-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 360px;
+            scroll-behavior: smooth;
+        }
+
+        .bot-messages::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .bot-messages::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 2px;
+        }
+
+        .bmsg {
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 16px;
+            font-size: 13px;
+            line-height: 1.6;
+            word-break: break-word;
+        }
+
+        .bmsg.bbot {
+            background: #1e293b;
+            color: #e2e8f0;
+            border-bottom-left-radius: 4px;
+            align-self: flex-start;
+        }
+
+        .bmsg.buser {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border-bottom-right-radius: 4px;
+            align-self: flex-end;
+        }
+
+        .bmsg.btyping {
+            background: #1e293b;
+            color: #64748b;
+            align-self: flex-start;
+            font-style: italic;
+        }
+
+        .bot-input-row {
+            padding: 12px 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .bot-inp {
+            flex: 1;
+            background: #1e293b;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 12px;
+            padding: 10px 14px;
+            color: white;
+            font-size: 13px;
+            outline: none;
+            font-family: inherit;
+            resize: none;
+            max-height: 80px;
+            transition: border-color 0.2s;
+        }
+
+        .bot-inp:focus {
+            border-color: #10b981;
+        }
+
+        .bot-send-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.15s;
+            flex-shrink: 0;
+        }
+
+        .bot-send-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .bot-send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .bot-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 0 16px 12px;
+        }
+
+        .bchip {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .bchip:hover {
+            background: rgba(16, 185, 129, 0.2);
+        }
+    </style>
+
+    <button id="farmbot-btn" onclick="farmBotToggle()" title="FarmAI Assistant">
+        <span style="font-size:24px;">🌾</span>
+        <span class="bot-notif" id="farmbot-notif" style="display:none;">1</span>
+    </button>
+
+    <div id="farmbot-window">
+        <div class="bot-header">
+            <div class="bot-avatar">🌾</div>
+            <div>
+                <p style="margin:0;font-weight:800;color:white;font-size:14px;">FarmAI Assistant</p>
+                <p style="margin:0;font-size:11px;color:rgba(255,255,255,0.75);">Agriculture Expert • Online</p>
+            </div>
+            <button onclick="farmBotToggle()"
+                style="margin-left:auto;background:none;border:none;color:rgba(255,255,255,0.7);cursor:pointer;font-size:20px;line-height:1;">&#x2715;</button>
+        </div>
+        <div class="bot-messages" id="farmbot-msgs">
+            <div class="bmsg bbot">👋 Hi! I am your <strong>FarmAI Assistant</strong>.<br><br>Ask me anything about
+                crops, diseases, fertilizers, irrigation, or farming tips. I am here to help! 🌱</div>
+        </div>
+        <div class="bot-chips" id="farmbot-chips">
+            <span class="bchip" onclick="farmBotChip('Best crops for clay soil?')">🌱 Clay soil</span>
+            <span class="bchip" onclick="farmBotChip('How to treat rice blast disease?')">🍚 Rice blast</span>
+            <span class="bchip" onclick="farmBotChip('Best fertilizer for wheat?')">🌾 Wheat fertilizer</span>
+            <span class="bchip" onclick="farmBotChip('How to increase crop yield?')">📈 Boost yield</span>
+            <span class="bchip" onclick="farmBotChip('Signs of nitrogen deficiency?')">⚠️ N deficiency</span>
+        </div>
+        <div class="bot-input-row">
+            <textarea id="farmbot-input" class="bot-inp" rows="1"
+                placeholder="Ask about crops, diseases, fertilizers..." onkeydown="farmBotKey(event)"
+                oninput="farmBotResize(this)"></textarea>
+            <button class="bot-send-btn" id="farmbot-send" onclick="farmBotSend()">&#9658;</button>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            var _open = false, _hist = [], _busy = false;
+            window.farmBotToggle = function () {
+                _open = !_open;
+                document.getElementById('farmbot-window').classList.toggle('bot-open', _open);
+                document.getElementById('farmbot-notif').style.display = _open ? 'none' : 'flex';
+                if (_open) document.getElementById('farmbot-input').focus();
+            };
+            window.farmBotKey = function (e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); farmBotSend(); } };
+            window.farmBotResize = function (el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 80) + 'px'; };
+            window.farmBotChip = function (t) { document.getElementById('farmbot-input').value = t; document.getElementById('farmbot-chips').style.display = 'none'; farmBotSend(); };
+            function addMsg(txt, role) {
+                var m = document.getElementById('farmbot-msgs');
+                var d = document.createElement('div');
+                d.className = 'bmsg ' + role;
+                d.innerHTML = txt.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                m.appendChild(d); m.scrollTop = m.scrollHeight; return d;
+            }
+            window.farmBotSend = async function () {
+                var inp = document.getElementById('farmbot-input');
+                var txt = inp.value.trim();
+                if (!txt || _busy) return;
+                inp.value = ''; inp.style.height = 'auto';
+                _busy = true; document.getElementById('farmbot-send').disabled = true;
+                document.getElementById('farmbot-chips').style.display = 'none';
+                addMsg(txt, 'buser');
+                _hist.push({ role: 'user', content: txt });
+                var td = addMsg('Thinking...', 'btyping');
+                try {
+                    var r = await fetch('/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: txt, history: _hist.slice(-6) }) });
+                    var data = await r.json();
+                    td.remove();
+                    var reply = data.reply || 'Sorry, could not get a response.';
+                    addMsg(reply, 'bbot');
+                    _hist.push({ role: 'assistant', content: reply });
+                } catch (e) { td.remove(); addMsg('Connection error. Is the server running?', 'bbot'); }
+                _busy = false; document.getElementById('farmbot-send').disabled = false; inp.focus();
+            };
+            setTimeout(function () { if (!_open) document.getElementById('farmbot-notif').style.display = 'flex'; }, 3000);
+        })();
+    </script>
+    <!-- ===== End FarmAI Chatbot ===== -->
 </body>
+
 </html>

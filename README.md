@@ -67,6 +67,20 @@ Every prediction is saved per user — crop history and disease history accessib
 <tr>
 <td width="50%">
 
+### 📉 Bias & Fairness Auditing
+Includes a dedicated auditing script (`fairness_audit.py`) to evaluate class distribution biases and measure model fairness across diverse environmental subgroups.
+
+</td>
+<td width="50%">
+
+### 🧠 Explainable AI (XAI)
+Powered by SHAP (Shapley Additive exPlanations) to dynamically explain why a specific crop is recommended, highlighting the exact contribution of each soil/climate feature.
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
 ### 🔐 User Authentication
 Secure register, login, profile management, and password change with bcrypt encryption.
 
@@ -106,6 +120,7 @@ FarmAi/
 │
 ├── 🐍 crop.py                    # Main FastAPI backend & all API routes
 ├── 🤖 crop_model.joblib          # Pre-trained Random Forest model
+├── ⚖️ fairness_audit.py          # Bias detection and fairness evaluation script
 │
 ├── 📂 Crop_recommendation/
 │   └── Crop_recommendation.csv   # Training dataset (2200 samples, 22 crops)

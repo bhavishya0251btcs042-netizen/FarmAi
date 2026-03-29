@@ -1,3 +1,4 @@
+and
 <!DOCTYPE html>
 <html lang="en" class="dark scroll-smooth">
 
@@ -13,6 +14,9 @@
         rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
+        if (!localStorage.getItem('token')) {
+            window.location.href = '/login-page';
+        }
         if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
         } else {
@@ -208,6 +212,41 @@
                         </button>
                     </div>
                 </div>
+
+                <!-- Crop Selector -->
+                <div class="mt-4">
+                    <label class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 block">
+                        <i class="fas fa-seedling text-brand-500 mr-1"></i> Select Your Crop (for accurate diagnosis)
+                    </label>
+                    <select id="cropSelector"
+                        class="w-full px-4 py-3 rounded-2xl text-sm font-semibold text-white outline-none border border-slate-700 bg-slate-800/80 focus:border-brand-500 transition-all">
+                        <option value="">-- Auto Detect --</option>
+                        <option value="rice">Rice / Paddy</option>
+                        <option value="maize">Maize / Corn</option>
+                        <option value="apple">Apple</option>
+                        <option value="banana">Banana</option>
+                        <option value="mango">Mango</option>
+                        <option value="grapes">Grapes</option>
+                        <option value="orange">Orange</option>
+                        <option value="coconut">Coconut</option>
+                        <option value="cotton">Cotton</option>
+                        <option value="jute">Jute</option>
+                        <option value="coffee">Coffee</option>
+                        <option value="chickpea">Chickpea</option>
+                        <option value="blackgram">Blackgram</option>
+                        <option value="lentil">Lentil</option>
+                        <option value="kidneybeans">Kidney Beans</option>
+                        <option value="mothbeans">Moth Beans</option>
+                        <option value="mungbean">Mung Bean</option>
+                        <option value="pigeonpeas">Pigeon Peas</option>
+                        <option value="watermelon">Watermelon</option>
+                        <option value="muskmelon">Muskmelon</option>
+                        <option value="papaya">Papaya</option>
+                        <option value="pomegranate">Pomegranate</option>
+                        <option value="potato">Potato</option>
+                        <option value="tomato">Tomato</option>
+                    </select>
+                </div>
             </div>
 
             <!-- Result Section -->
@@ -215,17 +254,29 @@
                 class="glass-card rounded-[2.5rem] p-10 text-left h-[500px] flex flex-col justify-between border-brand-500/10">
                 <div id="resultContent" class="hidden animate-fadeIn">
                     <div
-                        class="p-3 bg-brand-500/10 border border-brand-500/20 rounded-2xl inline-flex items-center gap-2 mb-6">
+                        class="p-3 bg-brand-500/10 border border-brand-500/20 rounded-2xl inline-flex items-center gap-2 mb-4">
                         <i class="fas fa-check-circle text-brand-500 text-xs"></i>
                         <span class="text-[10px] font-black uppercase text-brand-500 tracking-widest">Verified
                             Diagnosis</span>
                     </div>
 
+                    <!-- Crop name + disease type tags -->
+                    <div class="flex flex-wrap gap-2 mb-3">
+                        <span
+                            class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                            <i class="fas fa-seedling mr-1"></i><span id="cropNameTag">--</span>
+                        </span>
+                        <span
+                            class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-orange-500/10 border border-orange-500/20 text-orange-400">
+                            <i class="fas fa-virus mr-1"></i><span id="diseaseTypeTag">--</span>
+                        </span>
+                    </div>
+
                     <h4 id="diseaseName"
-                        class="font-display text-4xl font-black text-slate-900 dark:text-white mb-2 capitalize leading-tight">
+                        class="font-display text-3xl font-black text-slate-900 dark:text-white mb-2 capitalize leading-tight">
                         Searching...</h4>
 
-                    <div class="flex items-center gap-4 mb-8">
+                    <div class="flex items-center gap-4 mb-6">
                         <div class="flex-grow h-2 bg-slate-200 dark:bg-white/5 rounded-full overflow-hidden">
                             <div id="confidenceBar" class="h-full bg-brand-500 transition-all duration-1000"
                                 style="width: 0%"></div>
@@ -233,14 +284,40 @@
                         <span id="confidenceValue" class="text-xs font-black text-brand-500">0%</span>
                     </div>
 
-                    <div class="space-y-6">
+                    <div class="space-y-4">
                         <div
-                            class="p-6 rounded-3xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5">
+                            class="p-5 rounded-3xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5">
                             <span
-                                class="text-[10px] font-black uppercase text-slate-500 block mb-3">Counter-Measure</span>
+                                class="text-[10px] font-black uppercase text-slate-500 block mb-2">Counter-Measure</span>
                             <p id="treatmentText"
                                 class="text-sm font-medium leading-relaxed text-slate-700 dark:text-slate-300 italic">
                                 Waiting for scan...</p>
+                        </div>
+
+                        <!-- Feedback Section -->
+                        <div id="feedbackSection"
+                            class="p-4 rounded-2xl border border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/3">
+                            <p class="text-[10px] font-black uppercase text-slate-500 mb-3">Is this prediction correct?
+                            </p>
+                            <div class="flex gap-2 mb-3">
+                                <button onclick="markCorrect()" id="btnCorrect"
+                                    class="flex-1 py-2 rounded-xl text-xs font-bold border border-brand-500/30 text-brand-500 hover:bg-brand-500 hover:text-white transition-all">
+                                    <i class="fas fa-check mr-1"></i> Correct
+                                </button>
+                                <button onclick="showCorrection()" id="btnWrong"
+                                    class="flex-1 py-2 rounded-xl text-xs font-bold border border-red-500/30 text-red-400 hover:bg-red-500 hover:text-white transition-all">
+                                    <i class="fas fa-times mr-1"></i> Wrong
+                                </button>
+                            </div>
+                            <div id="correctionBox" class="hidden">
+                                <input type="text" id="correctionInput" placeholder="Enter the correct disease name..."
+                                    class="w-full px-3 py-2 rounded-xl text-xs text-white bg-slate-800 border border-slate-600 outline-none focus:border-brand-500 mb-2">
+                                <button onclick="submitCorrection()"
+                                    class="w-full py-2 rounded-xl text-xs font-bold bg-brand-500 text-white hover:bg-brand-600 transition-all">
+                                    Submit Correction
+                                </button>
+                            </div>
+                            <p id="feedbackMsg" class="text-xs text-center mt-2 hidden"></p>
                         </div>
                     </div>
                 </div>
@@ -365,18 +442,37 @@
 
         // 4. Analysis Logic
         async function analyzeImage(file) {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert("Authentication Required:\nPlease log in or create an account to use the FarmAI diagnostic features.");
+                window.location.href = '/login-page';
+                return;
+            }
+
             emptyResult.classList.add('hidden');
             resultContent.classList.add('hidden');
             scannerLine.style.display = 'block';
 
             const formData = new FormData();
             formData.append('file', file);
+            const cropVal = document.getElementById('cropSelector')?.value || '';
+            if (cropVal) formData.append('crop', cropVal);
 
             try {
                 const res = await fetch('/predict-disease', {
                     method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
                     body: formData
                 });
+
+                if (res.status === 401) {
+                    alert("Session expired. Please log in again.");
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    window.location.href = '/login-page';
+                    return;
+                }
+
                 const data = await res.json();
 
                 // Mock scanning delay
@@ -405,11 +501,18 @@
 
             const conf = res.confidence * 100;
             document.getElementById('confidenceValue').textContent = conf.toFixed(1) + '%';
+            setTimeout(() => { document.getElementById('confidenceBar').style.width = conf + '%'; }, 100);
 
-            setTimeout(() => {
-                document.getElementById('confidenceBar').style.width = conf + '%';
-            }, 100);
+            // Reset feedback section
+            document.getElementById('btnCorrect').innerHTML = '<i class="fas fa-check mr-1"></i> Correct';
+            document.getElementById('btnCorrect').className = 'flex-1 py-2 rounded-xl text-xs font-bold border border-brand-500/30 text-brand-500 hover:bg-brand-500 hover:text-white transition-all';
+            document.getElementById('btnWrong').innerHTML = '<i class="fas fa-times mr-1"></i> Wrong';
+            document.getElementById('btnWrong').className = 'flex-1 py-2 rounded-xl text-xs font-bold border border-red-500/30 text-red-400 hover:bg-red-500 hover:text-white transition-all';
+            document.getElementById('correctionBox').classList.add('hidden');
+            document.getElementById('correctionInput').value = '';
+            document.getElementById('feedbackMsg').classList.add('hidden');
 
+            lastDiagnosis = res;
             saveDiseaseToHistory(res);
         }
 
@@ -437,6 +540,47 @@
             cameraFeed.classList.add('hidden');
             cameraControls.classList.add('hidden');
             scannerLine.style.display = 'none';
+        }
+
+        // ---- Feedback functions ----
+        let lastDiagnosis = null;
+
+        function markCorrect() {
+            document.getElementById('btnCorrect').innerHTML = '<i class="fas fa-check mr-1"></i> Thanks!';
+            document.getElementById('btnCorrect').classList.add('bg-brand-500', 'text-white');
+            document.getElementById('btnWrong').classList.add('opacity-30', 'pointer-events-none');
+            showFeedbackMsg('Thank you for confirming the diagnosis!', '#10b981');
+        }
+
+        function showCorrection() {
+            document.getElementById('correctionBox').classList.remove('hidden');
+            document.getElementById('correctionInput').focus();
+            document.getElementById('btnWrong').innerHTML = '<i class="fas fa-times mr-1"></i> Wrong';
+        }
+
+        function submitCorrection() {
+            const val = document.getElementById('correctionInput').value.trim();
+            if (!val) { showFeedbackMsg('Please enter the correct disease name.', '#ef4444'); return; }
+
+            // Update the displayed disease name with user correction
+            document.getElementById('diseaseName').textContent = val;
+            document.getElementById('correctionBox').classList.add('hidden');
+            document.getElementById('btnWrong').classList.add('opacity-30', 'pointer-events-none');
+            document.getElementById('btnCorrect').classList.add('opacity-30', 'pointer-events-none');
+            showFeedbackMsg('Correction saved. Thank you for improving FarmAI!', '#10b981');
+
+            // Save corrected name to history if user is logged in
+            if (lastDiagnosis) {
+                lastDiagnosis.disease_name = val;
+                saveDiseaseToHistory(lastDiagnosis);
+            }
+        }
+
+        function showFeedbackMsg(msg, color) {
+            const el = document.getElementById('feedbackMsg');
+            el.textContent = msg;
+            el.style.color = color;
+            el.classList.remove('hidden');
         }
     </script>
 </body>
