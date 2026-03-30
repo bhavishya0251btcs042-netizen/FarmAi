@@ -602,10 +602,12 @@
 
       try {
         const res = await fetch("/predict", {
-          method: "POST", headers: {
+          method: "POST", 
+          headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`
-          }, body: JSON.stringify(data)
+          }, 
+          body: JSON.stringify(data)
         });
 
         if (res.status === 401) {
@@ -617,7 +619,8 @@
         }
 
         if (!res.ok) {
-          throw new Error(`Server returned ${res.status}`);
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.detail || `Server returned ${res.status}`);
         }
 
         const result = await res.json();
@@ -625,9 +628,9 @@
         sessionStorage.setItem('cropInputData', JSON.stringify(data));
         window.location.href = '/results-page';
       } catch (e) {
-        console.error(e);
+        console.error('PREDICTION ERROR:', e);
         app.loading = false;
-        console.error('Predict Failed'); alert('Analysis failed. Connection to advisor lost.');
+        alert(`Analysis failed: ${e.message || 'Connection to advisor lost.'}\n\nPlease check your internet connection or try again in a few moments.`);
       }
     };
   </script>
