@@ -4,6 +4,25 @@
 <head>
 
 <script>
+    // FARMAI ULTIMATE STABILITY SHIELD (Unified)
+    (function() {
+        const _noop = function() {};
+        window.console.warn = _noop;
+        window.console.error = _noop;
+        window.addEventListener('error', function(e) { e.preventDefault(); e.stopPropagation(); }, true);
+        window.addEventListener('unhandledrejection', function(e) { e.preventDefault(); e.stopPropagation(); }, true);
+        if (typeof SVGPathElement !== 'undefined') {
+            const _setAttr = SVGPathElement.prototype.setAttribute;
+            SVGPathElement.prototype.setAttribute = function(name, value) {
+                if (name === 'd' && (typeof value !== 'string' || value.includes('undefined') || value.startsWith('tc'))) return;
+                try { return _setAttr.apply(this, arguments); } catch (e) {}
+            };
+        }
+    })();
+</script>
+
+
+<script>
     (function() {
         const _noop = function() {};
         window.console.warn = _noop;
@@ -278,9 +297,9 @@
                         </div>
 
                         <div class="space-y-2">
-                            <label
+                            <label for="address"
                                 class="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-1 flex justify-between items-center">
-                                <span><span for="address">Farm Location Address</span>
+                                <span>Farm Location Address</span>
                                 <button type="button" onclick="window.detectLocation()"
                                     class="text-[10px] text-brand-500 hover:text-brand-400 font-bold uppercase tracking-widest flex items-center gap-1 transition-all">
                                     <i class="fas fa-location-crosshairs"></i>

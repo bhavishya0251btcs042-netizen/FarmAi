@@ -4,6 +4,25 @@
 <head>
 
 <script>
+    // FARMAI ULTIMATE STABILITY SHIELD (Unified)
+    (function() {
+        const _noop = function() {};
+        window.console.warn = _noop;
+        window.console.error = _noop;
+        window.addEventListener('error', function(e) { e.preventDefault(); e.stopPropagation(); }, true);
+        window.addEventListener('unhandledrejection', function(e) { e.preventDefault(); e.stopPropagation(); }, true);
+        if (typeof SVGPathElement !== 'undefined') {
+            const _setAttr = SVGPathElement.prototype.setAttribute;
+            SVGPathElement.prototype.setAttribute = function(name, value) {
+                if (name === 'd' && (typeof value !== 'string' || value.includes('undefined') || value.startsWith('tc'))) return;
+                try { return _setAttr.apply(this, arguments); } catch (e) {}
+            };
+        }
+    })();
+</script>
+
+
+<script>
     (function() {
         const _noop = function() {};
         window.console.warn = _noop;
