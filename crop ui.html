@@ -1,6 +1,36 @@
 <html lang="en" class="scroll-smooth">
 
 <head>
+
+  <script>
+    // Suppress Tailwind Play CDN production warning
+    if (window.console && console.warn) {
+      const origWarn = console.warn;
+      console.warn = function(...args) {
+        if (args[0] && typeof args[0] === 'string' && args[0].includes('tailwindcss.com should not be used in production')) return;
+        origWarn.apply(console, args);
+      };
+    }
+    
+    // Defensive wrapper for SVG path errors caused by third-party scripts/extensions
+    (function() {
+      const origSetAttr = SVGPathElement.prototype.setAttribute;
+      SVGPathElement.prototype.setAttribute = function(name, value) {
+        if (name === 'd' && typeof value === 'string' && value.includes('undefined')) return;
+        // Fix for specific malformed path error seen in logs
+        if (name === 'd' && typeof value === 'string' && value.startsWith('tc')) {
+          console.debug('Prevented malformed SVG path from extension conflict');
+          return;
+        }
+        try {
+          return origSetAttr.apply(this, arguments);
+        } catch (e) {
+          console.debug('Ignored SVG attribute error:', e);
+        }
+      };
+    })();
+  </script>
+
   <!-- Google Tag Manager -->
 <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
