@@ -11,4 +11,6 @@ bcrypt==4.0.1
 Pillow==10.1.0
 python-dotenv==1.0.0
 python-jose==3.3.0
-# Optimized for production - removed heavyweight unused model libraries
+requests==2.31.0
+# Optimized for production and compatibility with Python 3.11
+# Removed heavyweight unused libraries to prevent memory OOM crashes
