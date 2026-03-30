@@ -1,4 +1,4 @@
-# disease_model.py - ULTIMATE HYBRID-INTEL AG-ENGINE 12.0
+# disease_model.py - ULTIMATE AUTO-VISION AG-ENGINE 13.0
 import os, io, base64, requests, json
 from PIL import Image
 import numpy as np
@@ -11,11 +11,10 @@ GEMINI_KEY      = os.getenv("GEMINI_API_KEY", "").strip()
 KINDWISE_KEY    = os.getenv("CROP_HEALTH_API_KEY", "").strip()
 GROQ_KEY        = os.getenv("GROK_API_KEY", "").strip()
 
-# 2026 Validated URLs
+# 2026 Resilient URLs
 KINDWISE_URL    = "https://api.kindwise.com/api/v1/identification?details=health"
-GEMINI_URL      = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+GEMINI_URL      = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent"
 GROQ_URL        = "https://api.groq.com/openai/v1/chat/completions"
-GROQ_MODEL      = "llama-3.2-11b-vision-preview" # Reverting to the most stable known preview for compatibility
 
 def _expert_fallback(image_bytes: bytes, crop: str, errors: list = None) -> dict:
     tag = f"[AI:111|{'|'.join(errors) if errors else 'OK'}]"
@@ -25,44 +24,50 @@ def _expert_fallback(image_bytes: bytes, crop: str, errors: list = None) -> dict
     R, G, B = arr[:,:,0], arr[:,:,1], arr[:,:,2]
     total = R.size
     
-    is_maize = any(x in (crop or "").lower() for x in ["maise", "maize", "corn"])
-    is_rice = any(x in (crop or "").lower() for x in ["rice", "grain", "paddy"])
+    # 1. ENHANCED AUTO-CROP RECOGNITION (Vision Math)
+    # If the image is dominated by Yellow-Gold (R, G > 180, B < 150)
+    gold_mask = ((R > 180) & (G > 165) & (B < 140))
+    gold_pct = gold_mask.sum() / total
     
-    # 2026 Bright-Grain logic (Strict)
-    is_gold = ((R > 200) & (G > 180) & (B < 150))
-    gold_pct = is_gold.sum() / total
+    # If the image is dominated by Green (G > R & G > B)
+    green_mask = ((G > R + 10) & (G > B + 10))
+    green_pct = green_mask.sum() / total
+
+    # 2. RUST SENSOR (True Rust is darker orange/brown spots on green)
+    rust_mask = ((R > G + 50) & (R > B + 70) & (R < 210) & (G > 40))
+    rust_pct = rust_mask.sum() / total
     
-    # 2026 Pathological Rust logic (Darker spots)
-    rust = ((R > G + 45) & (R > B + 65) & (R < 210) & (G > 30))
-    r_pct = rust.sum() / total
-    
-    if (is_maize or is_rice) and gold_pct > 0.05:
+    # 3. DIAGNOSTIC LOGIC (Auto-Prioritizing Maturation)
+    # If it's very golden, it's likely a healthy mature grain (Rice/Maize)
+    if gold_pct > 0.08:
         return {
-            "disease": "Status: Generally Healthy (Mature)", "confidence": 0.99,
-            "treatment": f"Identified as healthy mature crop. No pathology detected. {tag}",
-            "fertilizer": "Maintain hydration.", "method": "Core Math 12.0"
+            "disease": "Status: Healthy (Mature)", "confidence": 0.99,
+            "treatment": f"Identified as healthy mature coloration. Grain quality optimal. {tag}",
+            "fertilizer": "No treatment needed. Harvest-ready.", "method": "Auto-Vision Math 13.0"
         }
     
-    if r_pct > 0.005:
+    # If it's mostly green but has some rust spots
+    if rust_pct > 0.005:
         return {
             "disease": "Pathology: Foliar Rust Detected", "confidence": 0.95,
-            "treatment": f"Detected orange fungal pattern. Apply Mancozeb or Myclobutanil. {tag}",
-            "fertilizer": "NPK 14-14-14", "method": "Core Math 12.0"
+            "treatment": f"Detected orange fungal patterns. Apply Mancozeb or Myclobutanil. {tag}",
+            "fertilizer": "Boost potassium levels.", "method": "Auto-Vision Math 13.0"
         }
         
     return {
         "disease": "Condition: Generally Healthy", "confidence": 0.85,
-        "treatment": f"No severe symptoms found in bio-scan. {tag}", "fertilizer": "NPK", "method": "Core Math 12.0"
+        "treatment": f"Bio-scan optimal. No severe pathology found. {tag}", 
+        "fertilizer": "Standard NPK 15-15-15.", "method": "Auto-Vision Math 13.0"
     }
 
 def _groq_predict(image_bytes: bytes, crop: str) -> dict:
     if not GROQ_KEY: raise ValueError("X-Missing")
     b64 = base64.b64encode(image_bytes).decode("utf-8")
-    payload = { "model": GROQ_MODEL, "messages": [{ "role": "user", "content": [ { "type": "text", "text": "JSON ONLY: {\"disease\":\"...\",\"confidence\":0.9,\"treatment\":\"...\"}" }, { "type": "image_url", "image_url": { "url": f"data:image/jpeg;base64,{b64}" } } ] }] }
+    payload = { "model": "llama-3.2-11b-vision-preview", "messages": [{ "role": "user", "content": [ { "type": "text", "text": "JSON ONLY: {\"disease\":\"...\",\"confidence\":0.9,\"treatment\":\"...\"}" }, { "type": "image_url", "image_url": { "url": f"data:image/jpeg;base64,{b64}" } } ] }] }
     r = requests.post(GROQ_URL, json=payload, headers={"Authorization": f"Bearer {GROQ_KEY}"}, timeout=25)
     if r.status_code != 200: raise Exception(f"X-{r.status_code}")
     txt = r.json()["choices"][0]["message"]["content"]; res = json.loads(txt.split("```")[1].replace("json","") if "```" in txt else txt)
-    return {"disease": res["disease"], "confidence": 0.9, "treatment": res["treatment"], "method": "Groq-Vision Tier"}
+    return {"disease": res["disease"], "confidence": 0.9, "treatment": res["treatment"], "method": "Groq Vision"}
 
 def _gemini_predict(image_bytes: bytes, crop: str) -> dict:
     if not GEMINI_KEY: raise ValueError("G-Missing")
@@ -70,21 +75,21 @@ def _gemini_predict(image_bytes: bytes, crop: str) -> dict:
     r = requests.post(f"{GEMINI_URL}?key={GEMINI_KEY}", json=b, timeout=20)
     if r.status_code != 200: raise Exception(f"G-{r.status_code}")
     txt = r.json()["candidates"][0]["content"]["parts"][0]["text"]; res = json.loads(txt.split("```")[1].replace("json","") if "```" in txt else txt)
-    return {"disease": res["disease"], "confidence": 0.9, "treatment": res["treatment"], "method": "Gemini-Vision Tier"}
+    return {"disease": res["disease"], "confidence": 0.9, "treatment": res["treatment"], "method": "Gemini AI"}
 
 def predict_disease_from_image(image_bytes: bytes, crop: str = None) -> dict:
     c = crop or "Plant"
     errs = []
     
-    # 1. Kindwise (Triple-Auth Strategy)
+    # 1. Kindwise (Dual-Header Auth Strategy)
     if KINDWISE_KEY:
         try:
             b64_img = base64.b64encode(image_bytes).decode('utf-8')
             for h_type in [{"Api-Key": KINDWISE_KEY}, {"Authorization": f"Bearer {KINDWISE_KEY}"}]:
-                r = requests.post(KINDWISE_URL, json={"images": [f"data:image/jpeg;base64,{b64_img}"]}, headers=h_type, timeout=15)
+                r = requests.post(KINDWISE_URL, json={"images": [f"data:image/jpeg;base64,{b64_img}"]}, headers=h_type, timeout=12)
                 if r.status_code == 200:
                     try: 
-                        d = r.json()["result"]["disease"]; return {"disease": d["name"].title(), "confidence": 0.95, "treatment": "Apply treatment.", "method": "Kindwise AI"}
+                        h = r.json()["result"]["disease"]; return {"disease": h["name"].title(), "confidence": 0.95, "treatment": "Apply treatment.", "method": "Kindwise AI"}
                     except: continue
             errs.append(f"K-{r.status_code}")
         except Exception: errs.append("K-TO")
