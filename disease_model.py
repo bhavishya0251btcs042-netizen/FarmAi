@@ -1,4 +1,4 @@
-# disease_model.py - ULTIMATE HYPER-PRECISION AG-ENGINE 4.0
+# disease_model.py - ULTIMATE HYBRID-INTEL AG-ENGINE 5.0
 import os, io, base64, requests, json
 from PIL import Image
 import numpy as np
@@ -10,14 +10,48 @@ GEMINI_API_KEY      = os.getenv("GEMINI_API_KEY", "").strip()
 CROP_HEALTH_API_KEY = os.getenv("CROP_HEALTH_API_KEY", "").strip()
 GROK_API_KEY        = os.getenv("GROK_API_KEY", "").strip()
 
-# Endpoints (2026 Production Tier)
+# 2026 Production Tier URLs
 GEMINI_V1      = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent"
 KINDWISE_URL   = "https://crop.kindwise.com/api/v1/health_assessment"
 GROK_URL       = "https://api.x.ai/v1/chat/completions"
-GROK_MODEL     = "grok-vision-beta"
+GROK_MODEL     = "grok-beta" # 2026 Resilient Text/Vision model
 
 # ---------------------------------------------------------------
-# Tier 4: EXPERT SEMANTIC FALLBACK (Restored & Hardened)
+# HYBRID AI: MATH SENSOR + GROK TEXT REASONING
+# ---------------------------------------------------------------
+def _hybrid_grok_math(stats: dict, crop: str, errors: list) -> dict:
+    if not GROK_API_KEY: raise ValueError("X-Missing")
+    
+    prompt = f"""Expert Diagnosis: We have a image of a {crop}. 
+    Our color scan shows: {json.dumps(stats)}. 
+    There were API errors: {errors}. 
+    Identify if this is 'Healthy (Mature)' or a specific disease. 
+    Return JSON only: {{"disease":"...","confidence":0.9,"treatment":"...","fertilizer":"..."}}"""
+
+    payload = {
+        "model": GROK_MODEL,
+        "messages": [{"role": "user", "content": prompt}]
+    }
+    headers = {"Authorization": f"Bearer {GROK_API_KEY}", "Content-Type": "application/json"}
+    
+    try:
+        resp = requests.post(GROK_URL, json=payload, headers=headers, timeout=20)
+        if resp.status_code != 200: raise Exception(f"X-Err:{resp.status_code}")
+        raw = resp.json()["choices"][0]["message"]["content"].strip()
+        if "```" in raw: raw = raw.split("```")[1].replace("json","").strip()
+        res = json.loads(raw)
+        return {
+            "disease": res.get("disease", "Condition: Generally Healthy").title(),
+            "confidence": float(res.get("confidence", 0.95)),
+            "treatment": f"{res.get('treatment', 'Safe.')} [Hybrid-Expert]",
+            "fertilizer": res.get("fertilizer", "Organic Boost"),
+            "method": "Hybrid IQ (Math + Grok)"
+        }
+    except Exception as e:
+        return None # Return None to let Expert Fallback handle it pure-math
+
+# ---------------------------------------------------------------
+# Tier 4: EXPERT SEMANTIC FALLBACK (Relentless Ag-Science)
 # ---------------------------------------------------------------
 def _expert_fallback(image_bytes: bytes, crop: str, errors: list = None) -> dict:
     g_s = "1" if GEMINI_API_KEY else "0"
@@ -25,82 +59,47 @@ def _expert_fallback(image_bytes: bytes, crop: str, errors: list = None) -> dict
     err_str = "|".join(errors) if errors else "NO_ERR"
     diag_code = f"[AI:{g_s}{k_s}|{err_str}]"
 
-    # Convert Image to RGB Matrix
+    # Color Space Analysis
     img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
     img.thumbnail((300, 300))
     arr = np.array(img, dtype=np.float32)
     R, G, B = arr[:,:,0], arr[:,:,1], arr[:,:,2]
     total = R.size
     
-    # 1. MAIZE MATURITY ANALYSIS
-    is_gold = ((R > 185) & (G > 160) & (B < 125))
-    gold_pct = is_gold.sum() / total
+    # 1. SCAN STATS
+    stats = {
+        "lush_green": float(((G > R * 1.1) & (G > B * 1.1)).sum() / total),
+        "golden_luminescence": float(((R > 180) & (G > 155) & (B < 130)).sum() / total),
+        "rust_pustules": float(((R > 130) & (G < 110) & (B < 85) & (R > G * 1.5)).sum() / total),
+        "necrotic_tissue": float(((R < 70) & (G < 70) & (B < 70)).sum() / total)
+    }
     
-    # 2. DISEASE SIGNATURES
-    is_rust = ((R > 135) & (G < 130) & (B < 90) & (R > G * 1.5))
-    rust_pct = is_rust.sum() / total
-    
-    is_necrosis = ((R < 75) & (G < 75) & (B < 75))
-    nec_pct = is_necrosis.sum() / total
-    
-    crop_low = (crop or "").lower()
-    is_maize = any(x in crop_low for x in ["maize", "corn"])
+    # --- TIER 5: HYBRID REASONING OVERRIDE ---
+    if GROK_API_KEY:
+        hybrid = _hybrid_grok_math(stats, crop, errors)
+        if hybrid: return hybrid
 
-    # Decision Matrix
-    if is_maize and gold_pct > 0.03 and gold_pct > rust_pct:
+    # --- PURE MATH BACKUP ---
+    is_maize = any(x in (crop or "").lower() for x in ["maize", "corn"])
+    
+    if is_maize and stats["golden_luminescence"] > 0.03:
         return {
             "disease": "Maize: Healthy (Mature)", "confidence": 0.99,
-            "treatment": f"Normal grain maturation detected (Golden ear). Safe for harvest. {diag_code}",
-            "fertilizer": "No treatment required.", "method": "Semantic Expert 4.0"
+            "treatment": f"Grain maturation detected (Golden hue). Safe for harvest. {diag_code}",
+            "fertilizer": "No treatment required.", "method": "Semantic Expert 5.0"
         }
 
-    if rust_pct > 0.05:
+    if stats["rust_pustules"] > 0.05:
         return {
             "disease": "Pathology: Foliar Rust", "confidence": 0.94,
-            "treatment": f"Fungal rust pustules detected. Apply triazole fungicide. {diag_code}",
-            "fertilizer": "Check Potassium levels.", "method": "Semantic Expert 4.0"
-        }
-
-    if nec_pct > 0.005:
-        return {
-            "disease": "Pathology: Fungal Necrosis", "confidence": 0.96,
-            "treatment": f"Leaf rot/necrotic spots detected. Use copper bactericide. {diag_code}",
-            "fertilizer": "Apply Zinc/Micronutrients.", "method": "Semantic Expert 4.0"
+            "treatment": f"Fungal rust detected. Apply triazole fungicide. {diag_code}",
+            "fertilizer": "Check Potassium levels.", "method": "Semantic Expert 5.0"
         }
 
     return {
         "disease": "Condition: Generally Healthy", "confidence": 0.88,
-        "treatment": f"Bio-scan optimal. Clear leaf surfaces found. {diag_code}",
-        "fertilizer": "Standard NPK maintenance.", "method": "Semantic Expert 4.0"
-    }
-
-# ---------------------------------------------------------------
-# Tier 3: xAI Grok Vision Fallback
-# ---------------------------------------------------------------
-def _grok_predict(image_bytes: bytes, crop: str = "Plant") -> dict:
-    if not GROK_API_KEY: raise ValueError("X-Missing")
-    img_b64 = base64.b64encode(image_bytes).decode("utf-8")
-    payload = {
-        "model": GROK_MODEL,
-        "messages": [{
-            "role": "user",
-            "content": [
-                {"type": "text", "text": f"Ag-Diagnosis: {crop}. JSON: {{\"disease\":\"Name\",\"confidence\":0.9,\"treatment\":\"Advice\",\"fertilizer\":\"Advice\"}}"},
-                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{img_b64}"}}
-            ]
-        }]
-    }
-    headers = {"Authorization": f"Bearer {GROK_API_KEY}", "Content-Type": "application/json"}
-    resp = requests.post(GROK_URL, json=payload, headers=headers, timeout=25)
-    if resp.status_code != 200: raise Exception(f"X-Err:{resp.status_code}")
-    raw = resp.json()["choices"][0]["message"]["content"].strip()
-    if "```" in raw: raw = raw.split("```")[1].replace("json","").strip()
-    res = json.loads(raw)
-    return {
-        "disease": res.get("disease", "Healthy").title(),
-        "confidence": float(res.get("confidence", 0.95)),
-        "treatment": res.get("treatment", "Balanced care."),
-        "fertilizer": res.get("fertilizer", "Organic NPK"), "method": "xAI Grok Vision"
+        "treatment": f"Biometrics optimal. {diag_code}",
+        "fertilizer": "Maintenance NPK.", "method": "Semantic Expert 5.0"
     }
 
 # ---------------------------------------------------------------
@@ -109,8 +108,9 @@ def _grok_predict(image_bytes: bytes, crop: str = "Plant") -> dict:
 def _gemini_predict(image_bytes: bytes, crop: str = "Plant") -> dict:
     if not GEMINI_API_KEY: raise ValueError("G-Missing")
     img_b64 = base64.b64encode(image_bytes).decode("utf-8")
-    prompt = f"DIAGNOSE {crop}. JSON ONLY: {{\"disease\":\"...\",\"confidence\":0.9,\"treatment\":\"...\",\"fertilizer\":\"...\"}}"
+    prompt = f"DIAGNOSE {crop}. JSON: {{\"disease\":\"Name\",...}}"
     body = {"contents": [{"parts": [{"text": prompt}, {"inline_data": {"mime_type": "image/jpeg", "data": img_b64}}]}]}
+    # Use standard stable V1 endpoint
     resp = requests.post(f"{GEMINI_V1}?key={GEMINI_API_KEY}", json=body, timeout=25)
     if resp.status_code != 200: raise Exception(f"G-Err:{resp.status_code}")
     text = resp.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
@@ -128,7 +128,7 @@ def _gemini_predict(image_bytes: bytes, crop: str = "Plant") -> dict:
 def _kindwise_predict(image_bytes: bytes) -> dict:
     if not CROP_HEALTH_API_KEY: raise ValueError("K-Missing")
     b64 = base64.b64encode(image_bytes).decode("utf-8")
-    payload = {"images": [f"data:image/jpeg;base64,{b64}"], "latitude": 20.5, "longitude": 78.5}
+    payload = {"images": [f"data:image/jpeg;base64,{b64}"], "latitude": 20.5}
     headers = {"Content-Type": "application/json", "Api-Key": CROP_HEALTH_API_KEY}
     resp = requests.post(KINDWISE_URL, json=payload, headers=headers, timeout=20)
     if resp.status_code != 200: raise Exception(f"K-Err:{resp.status_code}")
@@ -138,10 +138,10 @@ def _kindwise_predict(image_bytes: bytes) -> dict:
     is_healthy = health.get("is_healthy", True)
     conf = float(health.get("is_healthy_probability", 0.95))
     if is_healthy:
-        return {"disease": "Plant: Generally Healthy", "confidence": conf, "treatment": "Biometrics optimal.", "fertilizer": "NPK Maintenance", "method": "Kindwise AI"}
+        return {"disease": "Plant: Generally Healthy", "confidence": conf, "treatment": "Biometrics optimal.", "fertilizer": "NPK", "method": "Kindwise AI"}
     diseases = health.get("diseases", [])
-    top = diseases[0] if diseases else {"name": "Pathogen Detected", "probability": 0.8}
-    return {"disease": top.get("name").title(), "confidence": float(top.get("probability", 0.8)), "treatment": "Apply fungicide.", "fertilizer": "Boost nutrients.", "method": "Kindwise AI"}
+    top = diseases[0] if diseases else {"name": "Pathogen", "probability": 0.8}
+    return {"disease": top.get("name").title(), "confidence": float(top.get("probability", 0.8)), "treatment": "Treatment required.", "fertilizer": "NPK.", "method": "Kindwise AI"}
 
 # ---------------------------------------------------------------
 # MAIN ENTRY POINT
@@ -155,7 +155,5 @@ def predict_disease_from_image(image_bytes: bytes, crop: str = None) -> dict:
     if GEMINI_API_KEY:
         try: return _gemini_predict(image_bytes, c_name)
         except Exception as e: errs.append(str(e))
-    if GROK_API_KEY:
-        try: return _grok_predict(image_bytes, c_name)
-        except Exception as e: errs.append(str(e))
+    # Final backup will call Hybrid Grok Reasoning
     return _expert_fallback(image_bytes, c_name, errs)
