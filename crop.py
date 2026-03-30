@@ -479,6 +479,110 @@ If anyone asks "how many crops does FarmAI support/recommend/suggest" — answer
 If anyone asks to list the crops — list all 102 names above.
 If anyone asks what the model predicts — it picks the best 5 from 102 crops.
 
+IDEAL CONDITIONS FOR ALL CROPS:
+  - Almond: N:100, P:51, K:71, Temp:22.5C, Hum:49%, pH:6.7, Rain:64mm
+  - Apple: N:21, P:134, K:200, Temp:22.6C, Hum:92%, pH:5.9, Rain:113mm
+  - Apricot: N:100, P:50, K:70, Temp:22.3C, Hum:61%, pH:6.5, Rain:64mm
+  - Artichoke: N:81, P:39, K:49, Temp:19.6C, Hum:70%, pH:6.5, Rain:65mm
+  - Asparagus: N:80, P:39, K:50, Temp:20.0C, Hum:70%, pH:7.0, Rain:64mm
+  - Banana: N:100, P:82, K:50, Temp:27.4C, Hum:80%, pH:6.0, Rain:105mm
+  - Barley: N:65, P:46, K:41, Temp:17.0C, Hum:59%, pH:6.8, Rain:59mm
+  - Beetroot: N:59, P:40, K:80, Temp:19.8C, Hum:69%, pH:6.8, Rain:66mm
+  - Bell Pepper: N:101, P:51, K:50, Temp:25.2C, Hum:69%, pH:6.5, Rain:103mm
+  - Black Pepper: N:78, P:40, K:49, Temp:30.5C, Hum:80%, pH:6.0, Rain:247mm
+  - Blackberry: N:79, P:40, K:50, Temp:19.7C, Hum:70%, pH:6.0, Rain:101mm
+  - Blackgram: N:40, P:67, K:19, Temp:30.0C, Hum:65%, pH:7.1, Rain:68mm
+  - Blueberry: N:59, P:30, K:31, Temp:19.9C, Hum:70%, pH:5.0, Rain:98mm
+  - Broccoli: N:101, P:50, K:70, Temp:19.9C, Hum:70%, pH:6.8, Rain:101mm
+  - Buckwheat: N:45, P:30, K:30, Temp:20.0C, Hum:51%, pH:6.0, Rain:60mm
+  - Cabbage: N:101, P:50, K:70, Temp:20.2C, Hum:70%, pH:6.7, Rain:99mm
+  - Canola: N:98, P:50, K:51, Temp:15.0C, Hum:60%, pH:6.5, Rain:60mm
+  - Cardamom: N:82, P:39, K:51, Temp:25.1C, Hum:79%, pH:6.0, Rain:206mm
+  - Carrot: N:59, P:50, K:50, Temp:19.6C, Hum:70%, pH:6.2, Rain:66mm
+  - Cashew: N:79, P:40, K:50, Temp:29.9C, Hum:70%, pH:6.1, Rain:126mm
+  - Cassava: N:59, P:40, K:80, Temp:29.8C, Hum:65%, pH:6.0, Rain:156mm
+  - Cauliflower: N:100, P:50, K:70, Temp:19.7C, Hum:70%, pH:6.8, Rain:100mm
+  - Celery: N:101, P:49, K:69, Temp:19.9C, Hum:80%, pH:6.5, Rain:99mm
+  - Cherry: N:103, P:50, K:70, Temp:20.4C, Hum:60%, pH:6.5, Rain:80mm
+  - Chickpea: N:40, P:68, K:80, Temp:18.9C, Hum:17%, pH:7.3, Rain:80mm
+  - Chili: N:82, P:50, K:50, Temp:24.6C, Hum:71%, pH:6.5, Rain:79mm
+  - Cinnamon: N:81, P:40, K:49, Temp:30.5C, Hum:79%, pH:5.8, Rain:206mm
+  - Clove: N:79, P:40, K:51, Temp:29.9C, Hum:81%, pH:6.0, Rain:204mm
+  - Cocoa: N:99, P:50, K:69, Temp:24.5C, Hum:79%, pH:5.8, Rain:195mm
+  - Coconut: N:22, P:17, K:31, Temp:27.4C, Hum:95%, pH:6.0, Rain:176mm
+  - Coffee: N:101, P:29, K:30, Temp:25.5C, Hum:59%, pH:6.8, Rain:158mm
+  - Cotton: N:118, P:46, K:20, Temp:24.0C, Hum:80%, pH:6.9, Rain:80mm
+  - Cranberry: N:62, P:30, K:29, Temp:20.3C, Hum:80%, pH:4.7, Rain:127mm
+  - Cucumber: N:99, P:50, K:70, Temp:24.9C, Hum:70%, pH:6.5, Rain:101mm
+  - Dates: N:79, P:41, K:50, Temp:37.8C, Hum:29%, pH:7.2, Rain:19mm
+  - Eggplant: N:99, P:50, K:50, Temp:24.8C, Hum:70%, pH:6.0, Rain:101mm
+  - Fava Beans: N:35, P:50, K:50, Temp:20.1C, Hum:60%, pH:6.8, Rain:67mm
+  - Fig: N:81, P:39, K:50, Temp:27.3C, Hum:50%, pH:6.7, Rain:66mm
+  - Flax: N:59, P:40, K:41, Temp:19.7C, Hum:59%, pH:6.5, Rain:61mm
+  - Garlic: N:78, P:51, K:50, Temp:19.9C, Hum:70%, pH:6.8, Rain:64mm
+  - Grapes: N:23, P:133, K:200, Temp:23.8C, Hum:82%, pH:6.0, Rain:70mm
+  - Green Beans: N:33, P:50, K:50, Temp:25.6C, Hum:60%, pH:6.8, Rain:66mm
+  - Guava: N:101, P:50, K:69, Temp:25.1C, Hum:70%, pH:6.2, Rain:124mm
+  - Hazelnut: N:81, P:41, K:51, Temp:19.6C, Hum:59%, pH:6.8, Rain:99mm
+  - Jute: N:78, P:47, K:40, Temp:25.0C, Hum:80%, pH:6.7, Rain:175mm
+  - Kale: N:79, P:30, K:50, Temp:15.0C, Hum:70%, pH:6.7, Rain:65mm
+  - Kidneybeans: N:21, P:68, K:20, Temp:20.1C, Hum:22%, pH:5.7, Rain:106mm
+  - Kiwi: N:102, P:50, K:70, Temp:20.0C, Hum:71%, pH:6.5, Rain:125mm
+  - Lentil: N:19, P:68, K:19, Temp:24.5C, Hum:65%, pH:6.9, Rain:46mm
+  - Lettuce: N:80, P:29, K:49, Temp:17.6C, Hum:71%, pH:6.4, Rain:65mm
+  - Lima Beans: N:35, P:50, K:50, Temp:24.6C, Hum:61%, pH:6.7, Rain:64mm
+  - Macadamia: N:80, P:39, K:50, Temp:25.0C, Hum:70%, pH:6.2, Rain:126mm
+  - Maize: N:78, P:48, K:20, Temp:22.4C, Hum:65%, pH:6.2, Rain:85mm
+  - Mango: N:20, P:27, K:30, Temp:31.2C, Hum:50%, pH:5.8, Rain:95mm
+  - Millet: N:59, P:30, K:30, Temp:29.8C, Hum:40%, pH:6.5, Rain:45mm
+  - Mothbeans: N:21, P:48, K:20, Temp:28.2C, Hum:53%, pH:6.8, Rain:51mm
+  - Mungbean: N:21, P:47, K:20, Temp:28.5C, Hum:85%, pH:6.7, Rain:48mm
+  - Muskmelon: N:100, P:18, K:50, Temp:28.7C, Hum:92%, pH:6.4, Rain:25mm
+  - Mustard: N:59, P:40, K:40, Temp:20.6C, Hum:60%, pH:6.8, Rain:59mm
+  - Nectarine: N:98, P:50, K:71, Temp:22.3C, Hum:60%, pH:6.5, Rain:80mm
+  - Nutmeg: N:81, P:40, K:50, Temp:29.7C, Hum:79%, pH:6.0, Rain:201mm
+  - Oats: N:57, P:39, K:40, Temp:15.0C, Hum:59%, pH:6.2, Rain:70mm
+  - Okra: N:80, P:50, K:50, Temp:30.0C, Hum:70%, pH:6.7, Rain:81mm
+  - Olive: N:80, P:51, K:50, Temp:22.8C, Hum:49%, pH:7.6, Rain:61mm
+  - Onion: N:99, P:51, K:51, Temp:20.0C, Hum:71%, pH:6.4, Rain:66mm
+  - Orange: N:20, P:17, K:10, Temp:22.8C, Hum:92%, pH:7.0, Rain:110mm
+  - Papaya: N:50, P:59, K:50, Temp:33.7C, Hum:92%, pH:6.7, Rain:143mm
+  - Peach: N:101, P:50, K:70, Temp:23.2C, Hum:59%, pH:6.5, Rain:79mm
+  - Peanuts: N:36, P:46, K:44, Temp:29.7C, Hum:50%, pH:6.3, Rain:74mm
+  - Pear: N:102, P:50, K:70, Temp:20.1C, Hum:60%, pH:6.5, Rain:80mm
+  - Peas: N:34, P:51, K:50, Temp:19.9C, Hum:61%, pH:6.7, Rain:66mm
+  - Pecan: N:99, P:50, K:70, Temp:24.7C, Hum:60%, pH:6.7, Rain:98mm
+  - Pigeonpeas: N:21, P:68, K:20, Temp:27.7C, Hum:48%, pH:5.8, Rain:149mm
+  - Pineapple: N:100, P:51, K:70, Temp:24.5C, Hum:71%, pH:6.0, Rain:125mm
+  - Pistachio: N:76, P:39, K:49, Temp:28.2C, Hum:40%, pH:7.7, Rain:44mm
+  - Plum: N:101, P:50, K:70, Temp:22.6C, Hum:60%, pH:6.5, Rain:79mm
+  - Pomegranate: N:19, P:19, K:40, Temp:21.8C, Hum:90%, pH:6.4, Rain:108mm
+  - Potato: N:101, P:50, K:50, Temp:17.4C, Hum:85%, pH:6.0, Rain:88mm
+  - Pumpkin: N:79, P:50, K:70, Temp:25.3C, Hum:71%, pH:6.7, Rain:100mm
+  - Quinoa: N:82, P:51, K:50, Temp:19.8C, Hum:50%, pH:7.4, Rain:41mm
+  - Radish: N:57, P:41, K:49, Temp:17.5C, Hum:70%, pH:6.5, Rain:65mm
+  - Raspberry: N:81, P:39, K:49, Temp:20.2C, Hum:70%, pH:6.0, Rain:99mm
+  - Rice: N:80, P:48, K:40, Temp:23.7C, Hum:82%, pH:6.4, Rain:236mm
+  - Rubber: N:81, P:40, K:50, Temp:30.0C, Hum:80%, pH:5.2, Rain:250mm
+  - Safflower: N:59, P:41, K:41, Temp:28.1C, Hum:39%, pH:6.7, Rain:44mm
+  - Sesame: N:61, P:40, K:39, Temp:29.8C, Hum:49%, pH:6.8, Rain:55mm
+  - Sorghum: N:100, P:49, K:49, Temp:27.1C, Hum:50%, pH:6.9, Rain:57mm
+  - Soybeans: N:41, P:60, K:60, Temp:25.0C, Hum:61%, pH:6.5, Rain:76mm
+  - Spinach: N:81, P:31, K:50, Temp:14.8C, Hum:71%, pH:6.7, Rain:64mm
+  - Squash: N:80, P:50, K:70, Temp:24.9C, Hum:70%, pH:6.7, Rain:99mm
+  - Strawberry: N:100, P:50, K:70, Temp:20.0C, Hum:70%, pH:6.0, Rain:99mm
+  - Sugarcane: N:124, P:65, K:50, Temp:27.6C, Hum:78%, pH:6.9, Rain:201mm
+  - Sunflower: N:80, P:50, K:50, Temp:25.0C, Hum:50%, pH:6.7, Rain:65mm
+  - Sweet Potato: N:61, P:50, K:78, Temp:25.0C, Hum:69%, pH:6.0, Rain:102mm
+  - Tea: N:100, P:51, K:51, Temp:20.5C, Hum:81%, pH:5.0, Rain:196mm
+  - Tobacco: N:99, P:50, K:71, Temp:25.2C, Hum:70%, pH:6.0, Rain:101mm
+  - Turnip: N:62, P:41, K:49, Temp:17.4C, Hum:70%, pH:6.2, Rain:63mm
+  - Walnut: N:98, P:50, K:70, Temp:20.3C, Hum:60%, pH:6.7, Rain:80mm
+  - Watermelon: N:99, P:17, K:50, Temp:25.6C, Hum:85%, pH:6.5, Rain:51mm
+  - Wheat: N:92, P:50, K:49, Temp:19.8C, Hum:60%, pH:6.8, Rain:76mm
+  - Yam: N:81, P:51, K:79, Temp:29.7C, Hum:70%, pH:6.0, Rain:121mm
+  - Zucchini: N:79, P:50, K:69, Temp:24.5C, Hum:71%, pH:6.7, Rain:100mm
+
 ABOUT FARMAI:
 - Uses Random Forest ML model trained on soil & climate data
 - Inputs: Nitrogen, Phosphorus, Potassium, Temperature, Humidity, pH, Rainfall
