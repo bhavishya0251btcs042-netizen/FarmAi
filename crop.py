@@ -656,16 +656,18 @@ Be specific and practical."""
 
         try:
             resp = http_requests.post(
-                f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={gemini_key}",
+                f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}",
                 json={"contents": [{"parts": [{"text": prompt}, {"inline_data": {"mime_type": mime, "data": b64}}]}],
-                      "generationConfig": {"temperature": 0.2, "maxOutputTokens": 500}},
+                      "generationConfig": {"temperature": 0.2, "maxOutputTokens": 800}},
                 timeout=25
             )
+            if resp.status_code == 429:
+                return {"reply": "The analysis engine is currently busy (Rate Limit). Please wait a moment and try again."}
             resp.raise_for_status()
             reply = resp.json()["candidates"][0]["content"]["parts"][0]["text"]
             return {"reply": reply}
         except Exception as e:
-            return {"reply": f"Image analysis failed: {str(e)[:80]}"}
+            return {"reply": f"Image analysis failed: {str(e)[:100]}"}
 
     # ---- PDF: extract text then send to Groq ----
     elif ext == "pdf":
