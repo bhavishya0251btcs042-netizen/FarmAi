@@ -4,10 +4,9 @@
 <head>
 
 <script>
-    // FARMAI ULTIMATE STABILITY SHIELD (Unified)
+    // FARMAI STABILITY SHIELD
     (function() {
         const _noop = function() {};
-        // Only silence specific common noisy warnings to allow debugging of actual errors
         if (window.console) {
             const __warn = console.warn;
             console.warn = function(...args) {
@@ -34,134 +33,13 @@
 
 
 
-<script>
-    (function() {
-        const _noop = function() {};
-        window.console.warn = _noop;
-        window.console.error = _noop;
-        window.addEventListener('error', function(e) { e.preventDefault(); e.stopPropagation(); }, true);
-        window.addEventListener('unhandledrejection', function(e) { e.preventDefault(); e.stopPropagation(); }, true);
-        if (typeof SVGPathElement !== 'undefined') {
-            const _setAttr = SVGPathElement.prototype.setAttribute;
-            SVGPathElement.prototype.setAttribute = function(name, value) {
-                if (name === 'd' && (typeof value !== 'string' || value.includes('undefined') || value.startsWith('tc'))) return;
-                try { return _setAttr.apply(this, arguments); } catch (e) {}
-            };
-        }
-    })();
-</script>
 
 
-<script>
-    // ---------------------------------------------------------
-    // FARMAI ULTIMATE STABILITY SHIELD
-    // ---------------------------------------------------------
-    (function() {
-        const _noop = function() {};
-        if (window.console) {
-            const __warn = console.warn;
-            const __error = console.error;
-            console.warn = function(...args) {
-                if (typeof args[0] === 'string' && args[0].includes('tailwindcss.com')) return;
-                __warn.apply(console, args);
-            };
-            console.error = function(...args) {
-                if (typeof args[0] === 'string' && (args[0].includes('attribute d') || args[0].includes('message port'))) return;
-                __error.apply(console, args);
-            };
-        }
-        window.addEventListener('error', function(e) {
-            if (e.message && (e.message.includes('attribute d') || e.message.includes('message port'))) {
-                e.preventDefault(); e.stopPropagation();
-            }
-        }, true);
-        window.addEventListener('unhandledrejection', function(e) {
-            if (e.reason && e.reason.message && e.reason.message.includes('message port')) {
-                e.preventDefault(); e.stopPropagation();
-            }
-        }, true);
-        if (typeof SVGPathElement !== 'undefined') {
-            const _setAttr = SVGPathElement.prototype.setAttribute;
-            SVGPathElement.prototype.setAttribute = function(name, value) {
-                if (name === 'd' && (typeof value !== 'string' || value.includes('undefined') || value.startsWith('tc'))) return;
-                try { return _setAttr.apply(this, arguments); } catch (e) {}
-            };
-        }
-    })();
-</script>
 
 
-<script>
-    // ---------------------------------------------------------
-    // FARMAI ULTIMATE SILENCE ENGINE - Kills all console noise
-    // ---------------------------------------------------------
-    (function() {
-        const _noop = function() {};
-        // Completely silence common noisy console methods for a clean hackathon presentation
-        console.warn = _noop;
-        console.error = _noop;
-        console.debug = _noop;
-        
-        // Block all Error events from appearing in console
-        window.addEventListener('error', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }, true);
-
-        // Block all Unhandled Rejections (from extensions/broken APIs)
-        window.addEventListener('unhandledrejection', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }, true);
-
-        // Defensive protection for SVG errors caused by Google Translate or Floater extensions
-        if (typeof SVGPathElement !== 'undefined') {
-            const _setAttr = SVGPathElement.prototype.setAttribute;
-            SVGPathElement.prototype.setAttribute = function(name, value) {
-                if (name === 'd' && (typeof value !== 'string' || value.includes('undefined') || value.startsWith('tc'))) return;
-                try { return _setAttr.apply(this, arguments); } catch (e) {}
-            };
-        }
-    })();
-</script>
 
 
-<script>
-    // ---------------------------------------------------------
-    // FARMAI STABILITY SHIELD & CONSOLE CLEANER
-    // ---------------------------------------------------------
-    (function() {
-        // 1. Aggressive Console Cleaner (Kills annoying warnings from CDNs like Tailwind Play)
-        const __warn = console.warn;
-        const __error = console.error;
-        console.warn = function(...args) {
-            if (typeof args[0] === 'string' && args[0].includes('tailwindcss.com')) return;
-            __warn.apply(console, args);
-        };
-        console.error = function(...args) {
-            // Block the known SVG/Extension error stack from appearing
-            if (typeof args[0] === 'string' && (args[0].includes('attribute d') || args[0].includes('message port'))) return;
-            __error.apply(console, args);
-        };
 
-        // 2. Global Error Silencer for third-party extensions (like translators or floater buttons)
-        window.addEventListener('error', function(e) {
-            if (e.message && (e.message.includes('attribute d') || e.message.includes('message port'))) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-        }, true);
-
-        // 3. SVG Protection (Defensive polyfill against malformed extension injections)
-        const origSetAttr = SVGPathElement.prototype.setAttribute;
-        SVGPathElement.prototype.setAttribute = function(name, value) {
-            if (name === 'd' && (typeof value !== 'string' || value.includes('undefined') || value.startsWith('tc'))) {
-                return; 
-            }
-            try { return origSetAttr.apply(this, arguments); } catch (e) {}
-        };
-    })();
-</script>
 
 
   
@@ -543,227 +421,30 @@
         }
     </script>
 
-      <!-- ===== FarmAI Chatbot Widget ===== -->
+      
+  <!-- ===== FarmAI Chatbot Widget ===== -->
   <style>
-    #farmbot-btn {
-      position: fixed;
-      bottom: 28px;
-      right: 28px;
-      z-index: 9999;
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #10b981, #059669);
-      border: none;
-      cursor: pointer;
-      box-shadow: 0 8px 32px rgba(16, 185, 129, 0.4);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    #farmbot-btn:hover {
-      transform: scale(1.1);
-      box-shadow: 0 12px 40px rgba(16, 185, 129, 0.5);
-    }
-
-    #farmbot-btn .bot-notif {
-      position: absolute;
-      top: -4px;
-      right: -4px;
-      width: 18px;
-      height: 18px;
-      background: #ef4444;
-      border-radius: 50%;
-      font-size: 10px;
-      font-weight: 800;
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 2px solid #020617;
-    }
-
-    #farmbot-window {
-      position: fixed;
-      bottom: 100px;
-      right: 28px;
-      z-index: 9998;
-      width: 370px;
-      max-height: 560px;
-      background: #0f172a;
-      border: 1px solid rgba(16, 185, 129, 0.2);
-      border-radius: 24px;
-      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      transform: scale(0.8) translateY(20px);
-      opacity: 0;
-      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-      pointer-events: none;
-    }
-
-    #farmbot-window.bot-open {
-      transform: scale(1) translateY(0);
-      opacity: 1;
-      pointer-events: all;
-    }
-
-    @media(max-width:480px) {
-      #farmbot-window {
-        width: calc(100vw - 32px);
-        right: 16px;
-        bottom: 90px;
-      }
-    }
-
-    .bot-header {
-      background: linear-gradient(135deg, #10b981, #059669);
-      padding: 16px 20px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .bot-avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      flex-shrink: 0;
-    }
-
-    .bot-messages {
-      flex: 1;
-      overflow-y: auto;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      max-height: 360px;
-      scroll-behavior: smooth;
-    }
-
-    .bot-messages::-webkit-scrollbar {
-      width: 4px;
-    }
-
-    .bot-messages::-webkit-scrollbar-thumb {
-      background: #334155;
-      border-radius: 2px;
-    }
-
-    .bmsg {
-      max-width: 85%;
-      padding: 10px 14px;
-      border-radius: 16px;
-      font-size: 13px;
-      line-height: 1.6;
-      word-break: break-word;
-    }
-
-    .bmsg.bbot {
-      background: #1e293b;
-      color: #e2e8f0;
-      border-bottom-left-radius: 4px;
-      align-self: flex-start;
-    }
-
-    .bmsg.buser {
-      background: linear-gradient(135deg, #10b981, #059669);
-      color: white;
-      border-bottom-right-radius: 4px;
-      align-self: flex-end;
-    }
-
-    .bmsg.btyping {
-      background: #1e293b;
-      color: #64748b;
-      align-self: flex-start;
-      font-style: italic;
-    }
-
-    .bot-input-row {
-      padding: 12px 16px;
-      border-top: 1px solid rgba(255, 255, 255, 0.05);
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-
-    .bot-inp {
-      flex: 1;
-      background: #1e293b;
-      border: 1px solid rgba(148, 163, 184, 0.1);
-      border-radius: 12px;
-      padding: 10px 14px;
-      color: white;
-      font-size: 13px;
-      outline: none;
-      font-family: inherit;
-      resize: none;
-      max-height: 80px;
-      transition: border-color 0.2s;
-    }
-
-    .bot-inp:focus {
-      border-color: #10b981;
-    }
-
-    .bot-send-btn {
-      width: 40px;
-      height: 40px;
-      border-radius: 12px;
-      border: none;
-      cursor: pointer;
-      background: linear-gradient(135deg, #10b981, #059669);
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: transform 0.15s;
-      flex-shrink: 0;
-    }
-
-    .bot-send-btn:hover {
-      transform: scale(1.05);
-    }
-
-    .bot-send-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    .bot-chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      padding: 0 16px 12px;
-    }
-
-    .bchip {
-      padding: 5px 12px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 600;
-      background: rgba(16, 185, 129, 0.1);
-      border: 1px solid rgba(16, 185, 129, 0.2);
-      color: #10b981;
-      cursor: pointer;
-      transition: all 0.2s;
-      white-space: nowrap;
-    }
-
-    .bchip:hover {
-      background: rgba(16, 185, 129, 0.2);
-    }
+    #farmbot-btn { position: fixed; bottom: 28px; right: 28px; z-index: 9999; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #10b981, #059669); border: none; cursor: pointer; box-shadow: 0 8px 32px rgba(16, 185, 129, 0.4); display: flex; align-items: center; justify-content: center; transition: transform 0.2s, box-shadow 0.2s; }
+    #farmbot-btn:hover { transform: scale(1.1); box-shadow: 0 12px 40px rgba(16, 185, 129, 0.5); }
+    #farmbot-btn .bot-notif { position: absolute; top: -4px; right: -4px; width: 18px; height: 18px; background: #ef4444; border-radius: 50%; font-size: 10px; font-weight: 800; color: white; display: flex; align-items: center; justify-content: center; border: 2px solid #020617; }
+    #farmbot-window { position: fixed; bottom: 100px; right: 28px; z-index: 9998; width: 370px; max-height: 560px; background: #0f172a; border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 24px; box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6); display: flex; flex-direction: column; overflow: hidden; transform: scale(0.8) translateY(20px); opacity: 0; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); pointer-events: none; }
+    #farmbot-window.bot-open { transform: scale(1) translateY(0); opacity: 1; pointer-events: all; }
+    .bot-header { background: linear-gradient(135deg, #10b981, #059669); padding: 16px 20px; display: flex; align-items: center; gap: 12px; }
+    .bot-avatar { width: 40px; height: 40px; border-radius: 50%; background: rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+    .bot-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; max-height: 360px; scroll-behavior: smooth; }
+    .bot-messages::-webkit-scrollbar { width: 4px; }
+    .bot-messages::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
+    .bmsg { max-width: 85%; padding: 10px 14px; border-radius: 16px; font-size: 13px; line-height: 1.6; word-break: break-word; }
+    .bmsg.bbot { background: #1e293b; color: #e2e8f0; border-bottom-left-radius: 4px; align-self: flex-start; }
+    .bmsg.buser { background: linear-gradient(135deg, #10b981, #059669); color: white; border-bottom-right-radius: 4px; align-self: flex-end; }
+    .bmsg.btyping { background: #1e293b; color: #64748b; align-self: flex-start; font-style: italic; }
+    .bot-input-row { padding: 12px 16px; border-top: 1px solid rgba(255, 255, 255, 0.05); display: flex; gap: 8px; align-items: center; }
+    .bot-inp { flex: 1; background: #1e293b; border: 1px solid rgba(148, 163, 184, 0.1); border-radius: 12px; padding: 10px 14px; color: white; font-size: 13px; outline: none; font-family: inherit; resize: none; max-height: 80px; transition: border-color 0.2s; }
+    .bot-inp:focus { border-color: #10b981; }
+    .bot-send-btn { width: 40px; height: 40px; border-radius: 12px; border: none; cursor: pointer; background: linear-gradient(135deg, #10b981, #059669); color: white; display: flex; align-items: center; justify-content: center; transition: transform 0.15s; flex-shrink: 0; }
+    .bot-send-btn:hover { transform: scale(1.05); }
+    .bot-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 16px 12px; }
+    .bchip { padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); color: #10b981; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
   </style>
 
   <button id="farmbot-btn" onclick="farmBotToggle()" title="FarmAI Assistant">
@@ -774,107 +455,62 @@
   <div id="farmbot-window">
     <div class="bot-header">
       <div class="bot-avatar">🌾</div>
-      <div>
-        <p style="margin:0;font-weight:800;color:white;font-size:14px;">FarmAI Assistant</p>
-        <p style="margin:0;font-size:11px;color:rgba(255,255,255,0.75);">Agriculture Expert • Online</p>
-      </div>
-      <button onclick="farmBotToggle()"
-        style="margin-left:auto;background:none;border:none;color:rgba(255,255,255,0.7);cursor:pointer;font-size:20px;line-height:1;">&#x2715;</button>
+      <div><p style="margin:0;font-weight:800;color:white;font-size:14px;">FarmAI Assistant</p><p style="margin:0;font-size:11px;color:rgba(255,255,255,0.75);">Agriculture Expert • Online</p></div>
+      <button onclick="farmBotToggle()" style="margin-left:auto;background:none;border:none;color:rgba(255,255,255,0.7);cursor:pointer;font-size:20px;line-height:1;">&#x2715;</button>
     </div>
     <div class="bot-messages" id="farmbot-msgs">
-      <div class="bmsg bbot">👋 Hi! I am your <strong>FarmAI Assistant</strong>.<br><br>Ask me anything about crops,
-        diseases, fertilizers, irrigation, or farming tips. I am here to help! 🌱</div>
+      <div class="bmsg bbot">👋 Hi! I am your <strong>FarmAI Assistant</strong>. Ask me anything!</div>
     </div>
     <div class="bot-chips" id="farmbot-chips">
-      <span class="bchip" onclick="farmBotChip('Best crops for clay soil?')">🌱 Clay soil</span>
-      <span class="bchip" onclick="farmBotChip('How to treat rice blast disease?')">🍚 Rice blast</span>
-      <span class="bchip" onclick="farmBotChip('Best fertilizer for wheat?')">🌾 Wheat fertilizer</span>
-      <span class="bchip" onclick="farmBotChip('How to increase crop yield?')">📈 Boost yield</span>
-      <span class="bchip" onclick="farmBotChip('Signs of nitrogen deficiency?')">⚠️ N deficiency</span>
+      <span class="bchip" onclick="farmBotChip('Best crops for clay soil?')">🌱 Soil Help</span>
+      <span class="bchip" onclick="farmBotChip('How to treat rice blast?')">🍚 Disease Hub</span>
     </div>
-    <div class="bot-input-row" style="position:relative; flex-wrap:wrap;">
-      
-      
-      <textarea id="farmbot-input" class="bot-inp" rows="1" placeholder="Ask anything..."
-        onkeydown="farmBotKey(event)" oninput="farmBotResize(this)"></textarea>
+    <div class="bot-input-row">
+      <textarea id="farmbot-input" class="bot-inp" rows="1" placeholder="Ask anything..." onkeydown="farmBotKey(event)" oninput="farmBotResize(this)"></textarea>
       <button class="bot-send-btn" id="farmbot-send" onclick="farmBotSend()">&#9658;</button>
-      
     </div>
   </div>
 
-  
-  
-  
   <script>
     (function () {
       var _open = false, _hist = [], _busy = false;
-      
       window.farmBotToggle = function () {
         _open = !_open;
-        var win = document.getElementById('farmbot-window');
-        var notif = document.getElementById('farmbot-notif');
+        var win = document.getElementById('farmbot-window'), notif = document.getElementById('farmbot-notif');
         if(win) win.classList.toggle('bot-open', _open);
         if(notif) notif.style.display = _open ? 'none' : 'flex';
-        if (_open) {
-           var inp = document.getElementById('farmbot-input');
-           if(inp) inp.focus();
-        }
+        if (_open) { var inp = document.getElementById('farmbot-input'); if(inp) inp.focus(); }
       };
       window.farmBotKey = function (e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); farmBotSend(); } };
       window.farmBotResize = function (el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 80) + 'px'; };
-      window.farmBotChip = function (t) { var inp = document.getElementById('farmbot-input'); if(inp) inp.value = t; var chips = document.getElementById('farmbot-chips'); if(chips) chips.style.display = 'none'; farmBotSend(); };
+      window.farmBotChip = function (t) { var inp = document.getElementById('farmbot-input'); if(inp) inp.value = t; farmBotSend(); };
       function addMsg(txt, role) {
-        var m = document.getElementById('farmbot-msgs');
-        if(!m) return null;
-        var d = document.createElement('div');
-        d.className = 'bmsg ' + role;
-        d.innerHTML = txt.replace(/\\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        var m = document.getElementById('farmbot-msgs'); if(!m) return;
+        var d = document.createElement('div'); d.className = 'bmsg ' + role;
+        d.innerHTML = txt.replace(/
+/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         m.appendChild(d); m.scrollTop = m.scrollHeight; return d;
       }
       window.farmBotSend = async function () {
-        var inp = document.getElementById('farmbot-input');
-        if(!inp) return;
-        var txt = inp.value.trim();
-        if (!txt || _busy) return;
-        
-        inp.value = ''; inp.style.height = 'auto';
-        _busy = true; 
-        var sendBtn = document.getElementById('farmbot-send');
-        if(sendBtn) sendBtn.disabled = true;
-        var chips = document.getElementById('farmbot-chips');
-        if(chips) chips.style.display = 'none';
-
-        addMsg(txt, 'buser');
-        _hist.push({ role: 'user', content: txt });
-
+        var inp = document.getElementById('farmbot-input'); if(!inp) return;
+        var txt = inp.value.trim(); if (!txt || _busy) return;
+        inp.value = ''; inp.style.height = 'auto'; _busy = true; 
+        var sBtn = document.getElementById('farmbot-send'); if(sBtn) sBtn.disabled = true;
+        var chips = document.getElementById('farmbot-chips'); if(chips) chips.style.display = 'none';
+        addMsg(txt, 'buser'); _hist.push({ role: 'user', content: txt });
         var td = addMsg('Thinking...', 'btyping');
         try {
-          var res = await fetch('/chat', { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify({ message: txt, history: _hist.slice(-10) }) 
-          });
-          var data = await res.json();
-          if(td) td.remove();
-          var reply = data.reply || 'Sorry, could not get a response.';
-          addMsg(reply, 'bbot');
+          var res = await fetch('/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: txt, history: _hist.slice(-8) }) });
+          var data = await res.json(); if(td) td.remove();
+          var reply = data.reply || 'No response.'; addMsg(reply, 'bbot');
           _hist.push({ role: 'assistant', content: reply });
-        } catch (e) { if(td) td.remove(); addMsg('Connection error. Is the server running?', 'bbot'); }
-        
-        _busy = false; if(sendBtn) sendBtn.disabled = false; inp.focus();
+        } catch (e) { if(td) td.remove(); addMsg('Error connecting.', 'bbot'); }
+        _busy = false; if(sBtn) sBtn.disabled = false; inp.focus();
       };
-      setTimeout(function () { 
-        if (!_open) {
-          var notif = document.getElementById('farmbot-notif');
-          if(notif) notif.style.display = 'flex';
-        }
-      }, 3000);
+      setTimeout(function () { if (!_open) { var n = document.getElementById('farmbot-notif'); if(n) n.style.display = 'flex'; } }, 3000);
     })();
   </script>
 
-
-
-  <!-- ===== End FarmAI Chatbot ===== -->
 
 </body>
 
