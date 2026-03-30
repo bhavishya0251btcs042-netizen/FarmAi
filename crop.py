@@ -591,7 +591,7 @@ ABOUT FARMAI:
 
 You also help farmers with crop selection, disease treatment, fertilizer advice,
 irrigation, pest control, harvesting tips, and any agriculture-related knowledge.
-Be friendly, concise, practical. Keep responses under 200 words unless more detail is needed."""
+Be friendly, concise, practical. DO NOT cut off lists. If asked to list crops, list all 102 crops entirely without summarizing or stopping early."""
 
 @app.post("/chat")
 def chat(req: ChatMessage):
@@ -607,7 +607,7 @@ def chat(req: ChatMessage):
         resp = http_requests.post(
             "https://api.groq.com/openai/v1/chat/completions",
             headers={"Authorization": f"Bearer {GROK_API_KEY}", "Content-Type": "application/json"},
-            json={"model": "llama-3.3-70b-versatile", "messages": messages, "max_tokens": 400, "temperature": 0.7},
+            json={"model": "llama-3.3-70b-versatile", "messages": messages, "max_tokens": 1500, "temperature": 0.7},
             timeout=20
         )
         if resp.status_code == 400:
@@ -697,7 +697,7 @@ Be specific and practical."""
             headers={"Authorization": f"Bearer {GROK_API_KEY}", "Content-Type": "application/json"},
             json={"model": "llama-3.3-70b-versatile",
                   "messages": [{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": user_msg}],
-                  "max_tokens": 500, "temperature": 0.5},
+                  "max_tokens": 1500, "temperature": 0.5},
             timeout=20
         )
         resp.raise_for_status()
@@ -715,7 +715,7 @@ Be specific and practical."""
             json={
                 "model": "llama-3.3-70b-versatile",
                 "messages": messages,
-                "max_tokens": 400,
+                "max_tokens": 1500,
                 "temperature": 0.7
             },
             timeout=20
