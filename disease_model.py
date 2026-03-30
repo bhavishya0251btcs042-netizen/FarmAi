@@ -103,7 +103,7 @@ EXPERT_KB = {
 # ---------------------------------------------------------------
 # Expert fallback — color analysis
 # ---------------------------------------------------------------
-def _analyze_symptoms(image: Image.Image) -> tuple:
+def _analyze_symptoms(image: Image.Image, crop: str = "plant") -> tuple:
     import numpy as np
     img = image.copy().convert("RGB")
     img.thumbnail((150, 150))
@@ -111,61 +111,61 @@ def _analyze_symptoms(image: Image.Image) -> tuple:
     R, G, B = arr[:,:,0], arr[:,:,1], arr[:,:,2]
     total = R.size
     
-    # Healthy Profile: Clean greenery
-    # We now check for a VERY clean leaf to call it 'Healthy'
-    lush_green = ((G > R * 1.05) & (G > B * 1.05)).sum() / total
+    # Healthy Profile: Greenery or Mature Cereal Gold
+    lush_green = ((G > R * 1.02) & (G > B * 1.02)).sum() / total
+    # Maize/Corn maturity check (Golden Yellow)
+    golden_ear = ((R > 180) & (G > 140) & (B < 100) & (R > G * 1.1)).sum() / total
     
     # Disease symptoms (Intense spotting)
-    # Rust / Orange / Bright Spots (like in the user's screenshot)
-    rust   = ((R > 140) & (G > 60) & (G < 160) & (B < 80) & (R > G * 1.15)).sum() / total
-    # Necrotic brown/black centers
+    # Rust / Spot Rule - exclude golden harvestable parts
+    rust   = (((R > 140) & (G > 60) & (G < 160) & (B < 80) & (R > G * 1.15)).sum() / total) - (golden_ear * 0.5)
     brown  = ((R > 80)  & (G < 80)  & (B < 70)  & (R > G * 1.5)).sum() / total
-    # Chlorosis (Wilt yellowing)
-    yellow = ((R > 190) & (G > 170) & (B < 120)).sum() / total
-    # Rot/Black
-    dark   = ((R < 50)  & (G < 50)  & (B < 50)).sum() / total
+    yellow_wilt = ((R > 210) & (G > 195) & (B < 120)).sum() / total
+    dark_rot   = ((R < 40)  & (G < 40)  & (B < 40)).sum() / total
 
-    # HIGH PRECISION THRESHOLDS
-    # If there is ANY significant rusting or browning, it is NOT healthy
-    if rust > 0.04 or brown > 0.05:
-        return 1, 0.92  # Likely Rust/Spot disease
+    # PRECISION THRESHOLDS - SMART CROP AWARENESS
+    is_maize = crop.lower() in ["maize", "corn", "plant"]
+    
+    # If Maize/Corn ears are detected and symptoms are low elsewhere
+    if is_maize and golden_ear > 0.05 and brown < 0.05 and dark_rot < 0.05:
+        return -1, 0.99  # Healthy Corn
         
-    if yellow > 0.12:
-        return 0, 0.88  # Likely Chlorosis/Wilt
+    if rust > 0.06 or brown > 0.08:
+        return 1, 0.85  # Fungal Spot
         
-    if dark > 0.08:
-        return 2, 0.85  # Likely Rot
+    if yellow_wilt > 0.15:
+        return 0, 0.82  # Wilt
         
-    # Only if the leaf is very green AND has almost zero symptoms do we call it healthy
-    if lush_green > 0.35 and (rust + brown + yellow + dark) < 0.05:
+    # Standard Healthy check
+    if (lush_green + golden_ear) > 0.30 and (rust + brown + dark_rot) < 0.06:
         return -1, 0.98  # Healthy
         
-    return 1, 0.45  # Default to low-confidence anomaly
+    return 1, 0.40
 
 
 def _expert_fallback(image: Image.Image, crop: str) -> dict:
     crop_title = crop.title() if crop else "Plant"
     crop_key = crop.lower().strip().replace(" ", "").replace("-", "") if crop else "plant"
     
-    symptom_idx, conf = _analyze_symptoms(image)
+    symptom_idx, conf = _analyze_symptoms(image, crop_key)
     
     if symptom_idx == -1:
         return {
             "disease":    f"{crop_title}: Healthy",
             "confidence": conf,
-            "treatment":  "Plant appears in excellent health. Continue current care protocol.",
-            "fertilizer": "Maintain balanced NPK schedule.",
-            "method":     "High-Precision Color Diagnostics"
+            "treatment":  "Plant is in optimal condition. Maintain standard irrigation and organic fertilizer schedule.",
+            "fertilizer": "Maintain balanced NPK (15-15-15).",
+            "method":     "High-Fidelity Health Screening"
         }
 
     diseases = EXPERT_KB.get(crop_key)
     if not diseases:
         return {
-            "disease":    f"{crop_title}: Anomaly Detected (Possible Rust/Spot)",
-            "confidence": conf,
-            "treatment":  "Specific spots detected. Apply a broad-spectrum fungicide (mancozeb) and remove worst-affected leaves.",
-            "fertilizer": "Check soil pH; apply secondary micronutrients.",
-            "method":     "Dynamic Anomaly Fallback"
+            "disease":    f"{crop_title}: Potential Fungal Sign",
+            "confidence": 0.65,
+            "treatment":  "Slight anomalies detected. Observe plant for 24h. Use neem oil if spots increase.",
+            "fertilizer": "Check micro-nutrient levels (Zinc/Boron).",
+            "method":     "Deep Color Analysis Fallback"
         }
         
     idx = min(max(symptom_idx, 0), len(diseases) - 1)
@@ -175,95 +175,74 @@ def _expert_fallback(image: Image.Image, crop: str) -> dict:
         "confidence": conf,
         "treatment":  treatment,
         "fertilizer": fertilizer,
-        "method":     "Expert Diagnostic Engine"
+        "method":     "Expert Contextual Eye"
     }
 
 
 # ---------------------------------------------------------------
 # Gemini Vision API — free, no credit card, 15 req/min
 # ---------------------------------------------------------------
-def _gemini_predict(image_bytes: bytes, crop: str) -> dict:
-    img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-    # Resize to reduce payload
-    img.thumbnail((512, 512))
+def _gemini_predict(image_bytes: bytes, crop: str = "Plant") -> dict:
+    if not GEMINI_API_KEY:
+        return {"error": "API Key not set"}
+
+    import PIL.Image
+    img = PIL.Image.open(io.BytesIO(image_bytes))
+    img.thumbnail((384, 384)) # Faster upload
     buf = io.BytesIO()
-    img.save(buf, format="JPEG", quality=80)
+    img.save(buf, format="JPEG", quality=75)
     b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
 
-    crop_hint = f"The crop is {crop}." if crop and crop.lower() != "plant" else "Identify the crop type from the image."
+    crop_hint = f"The crop is {crop}." if crop and crop.lower() != "plant" else "Identify the crop type if possible."
 
-    prompt = f"""You are an expert agricultural plant pathologist. Analyze this plant/crop leaf image.
-{crop_hint}
+    prompt = f"""Expert Plant Diagnosis:
+Analyze the provided image {crop_hint}
 
-Respond ONLY in this exact JSON format with no extra text:
+Respond in JSON ONLY:
 {{
-  "is_leaf": true or false,
-  "crop": "crop name",
-  "disease": "Crop Name: Disease Name (or Healthy)",
-  "confidence": 0.0 to 1.0,
-  "treatment": "specific treatment steps",
-  "fertilizer": "specific fertilizer recommendation"
+  "is_leaf": true,
+  "crop": "name", 
+  "disease": "Crop: [Disease or Healthy]",
+  "confidence": 0.0-1.0, 
+  "treatment": "steps",
+  "fertilizer": "NPK recommendations"
 }}
 
-Rules:
-- CRITICAL: If the leaf looks pristine, green, and vibrant with no visible spots or anomalies, you MUST set disease to "Crop Name: Healthy".
-- If not a plant leaf image, set is_leaf to false.
-- Be specific with disease name (e.g. "Rice: Blast Disease").
-- If pests (insects) are visible, mention them in the treatment or disease name.
-- Treatment must be actionable (specific pesticide names if applicable).
-- Fertilizer must include NPK values where possible.
-- Confidence should reflect your certainty (e.g. 0.98 for healthy, lower for vague symptoms)."""
+Strict Logic:
+1. If most of the leaves look clean, green/gold and healthy, mark as "Healthy".
+2. Maize ears (yellow/gold) are healthy parts, NOT Rust.
+3. If not a plant, is_leaf=false."""
 
     payload = {
-        "contents": [{
-            "parts": [
-                {"text": prompt},
-                {"inline_data": {"mime_type": "image/jpeg", "data": b64}}
-            ]
-        }],
-        "generationConfig": {
-            "temperature": 0.1,
-            "maxOutputTokens": 300
+        "contents": [{"parts": [{"text": prompt}, {"inline_data": {"mime_type": "image/jpeg", "data": b64}}]}],
+        "generationConfig": {"temperature": 0.0, "maxOutputTokens": 400}
+    }
+
+    try:
+        resp = requests.post(f"{GEMINI_URL}?key={GEMINI_API_KEY}", json=payload, timeout=25)
+        resp.raise_for_status()
+        data = resp.json()
+        text = data["candidates"][0]["content"]["parts"][0]["text"].strip()
+        
+        if "```" in text:
+            text = text.split("```")[1].strip()
+            if text.startswith("json"): text = text[4:].strip()
+
+        import json
+        result = json.loads(text)
+        
+        if not result.get("is_leaf", True):
+            return {"error": "Invalid Input", "message": "Please upload a clear plant leaf image."}
+
+        return {
+            "disease":    result.get("disease", f"{crop}: Healthy"),
+            "confidence": float(result.get("confidence", 0.95)),
+            "treatment":  result.get("treatment", "Balanced growth protocol."),
+            "fertilizer": result.get("fertilizer", "NPK 15-15-15"),
+            "method":     "Gemini 1.5 AI Vision"
         }
-    }
-
-    resp = requests.post(
-        f"{GEMINI_URL}?key={GEMINI_API_KEY}",
-        json=payload,
-        timeout=20
-    )
-    resp.raise_for_status()
-    data = resp.json()
-
-    text = data["candidates"][0]["content"]["parts"][0]["text"].strip()
-
-    # Clean markdown code blocks if present
-    if "```" in text:
-        text = text.split("```")[1]
-        if text.startswith("json"):
-            text = text[4:]
-        text = text.strip()
-
-    import json
-    result = json.loads(text)
-
-    if not result.get("is_leaf", True):
-        return {"error": "Invalid Input", "message": "Please upload a clear plant leaf image."}
-
-    # Get fertilizer from expert KB if Gemini's is vague
-    crop_key = result.get("crop", crop).lower().strip().replace(" ", "").replace("-", "")
-    kb = EXPERT_KB.get(crop_key)
-    fertilizer = result.get("fertilizer", "")
-    if not fertilizer or len(fertilizer) < 10:
-        fertilizer = kb[0][2] if kb else "Balanced NPK (10-10-10)."
-
-    return {
-        "disease":    result.get("disease", f"{crop}: Unknown Disease"),
-        "confidence": float(result.get("confidence", 0.85)),
-        "treatment":  result.get("treatment", "Consult an agricultural expert."),
-        "fertilizer": fertilizer,
-        "method":     "Google Gemini AI Vision"
-    }
+    except Exception:
+        raise # Let parent handle fallback
 
 
 # ---------------------------------------------------------------
@@ -272,27 +251,22 @@ Rules:
 def predict_disease_from_image(image_bytes: bytes, crop: str = None) -> dict:
     image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
 
-    # Basic leaf check
+    # Basic foliage check
     thumb = image.copy()
     thumb.thumbnail((100, 100))
     pixels = list(thumb.getdata())
-    green = sum(1 for r, g, b in pixels if g > r * 1.05 and g > b * 1.05)
-    if green / len(pixels) < 0.06:
+    green_gold = sum(1 for r, g, b in pixels if (g > r * 1.0) or (r > 150 and g > 150)) # expanded for corn
+    if green_gold / len(pixels) < 0.04:
         return {"error": "Invalid Input", "message": "Please upload a clear plant leaf image."}
 
     crop_name = (crop or "").strip() or "Plant"
 
-    # Try Gemini API first
+    # Priority: AI Vision
     if GEMINI_API_KEY:
         try:
-            result = _gemini_predict(image_bytes, crop_name)
-            if "error" not in result:
-                return result
-            return result  # propagate invalid image error
-        except requests.exceptions.Timeout:
-            print("Gemini API timeout. Using expert fallback.")
-        except Exception as e:
-            print(f"Gemini API error: {e}. Using expert fallback.")
+            return _gemini_predict(image_bytes, crop_name)
+        except Exception:
+            pass
 
-    # Fallback to expert knowledge base
+    # Fallback: Expert System
     return _expert_fallback(image, crop_name)
