@@ -123,7 +123,7 @@ FarmAi/
 ├── ⚖️ fairness_audit.py          # Bias detection and fairness evaluation script
 │
 ├── 📂 Crop_recommendation/
-│   └── Crop_recommendation.csv   # Training dataset (10200 samples, 102 crops)
+│   └── Crop_recommendation.csv   # Training dataset (10100 samples, 101 crops)
 │
 ├── 📂 logo/                      # App branding & background images
 │   └── crops/                    # Individual crop images
