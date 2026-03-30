@@ -103,41 +103,65 @@ EXPERT_KB = {
 # ---------------------------------------------------------------
 # Expert fallback — color analysis
 # ---------------------------------------------------------------
-def _analyze_symptoms(image: Image.Image) -> int:
+def _analyze_symptoms(image: Image.Image) -> tuple:
     import numpy as np
     img = image.copy().convert("RGB")
     img.thumbnail((150, 150))
     arr = np.array(img, dtype=np.float32)
     R, G, B = arr[:,:,0], arr[:,:,1], arr[:,:,2]
     total = R.size
+    
+    # Healthy Green check
+    green = ((G > R * 1.1) & (G > B * 1.1)).sum() / total
+    
+    # Disease symptoms
     yellow = ((R > 150) & (G > 130) & (B < 80)).sum() / total
     brown  = ((R > 100) & (G < 120) & (B < 80) & (R > G * 1.3)).sum() / total
     dark   = ((R < 80)  & (G < 80)  & (B < 80)).sum() / total
-    if dark > 0.12:   return 2
-    if brown > 0.15:  return 1
-    if yellow > 0.18: return 0
-    return 0
+
+    # Thresholds
+    if green > 0.45 and (yellow + brown + dark) < 0.08:
+        return -1, 0.95  # Healthy
+        
+    if dark > 0.12:   return 2, 0.72
+    if brown > 0.15:  return 1, 0.75
+    if yellow > 0.18: return 0, 0.78
+    return 0, 0.65  # Default low confidence disease
 
 
 def _expert_fallback(image: Image.Image, crop: str) -> dict:
-    crop_key = crop.lower().strip().replace(" ", "").replace("-", "")
+    crop_title = crop.title() if crop else "Plant"
+    crop_key = crop.lower().strip().replace(" ", "").replace("-", "") if crop else "plant"
+    
+    symptom_idx, conf = _analyze_symptoms(image)
+    
+    if symptom_idx == -1:
+        return {
+            "disease":    f"{crop_title}: Healthy",
+            "confidence": conf,
+            "treatment":  "No disease detected. Maintain regular irrigation and check for pests.",
+            "fertilizer": "Maintain balanced NPK (15-15-15) for growth.",
+            "method":     "Expert Color Analysis (Healthy Stage)"
+        }
+
     diseases = EXPERT_KB.get(crop_key)
     if not diseases:
         return {
-            "disease":    f"{crop.title()}: Fungal Leaf Disease",
-            "confidence": 0.70,
-            "treatment":  "Apply mancozeb or copper-based fungicide. Remove infected leaves.",
+            "disease":    f"{crop_title}: Potential Fungal Issue",
+            "confidence": 0.60,
+            "treatment":  "Observe for 24h. If symptoms persist, apply organic neem oil or mild fungicide.",
             "fertilizer": "Balanced NPK (10-10-10).",
-            "method":     "Expert Knowledge Base"
+            "method":     "Expert Knowledge Base Fallback"
         }
-    idx = min(_analyze_symptoms(image), len(diseases) - 1)
+        
+    idx = min(symptom_idx, len(diseases) - 1)
     name, treatment, fertilizer = diseases[idx]
     return {
         "disease":    name,
-        "confidence": 0.78,
+        "confidence": conf,
         "treatment":  treatment,
         "fertilizer": fertilizer,
-        "method":     "Expert Knowledge Base + Image Analysis"
+        "method":     "Expert Knowledge Base + Symptom Analysis"
     }
 
 
@@ -168,12 +192,13 @@ Respond ONLY in this exact JSON format with no extra text:
 }}
 
 Rules:
-- If not a plant leaf image, set is_leaf to false
-- Be specific with disease name (e.g. "Rice: Blast Disease" not just "disease")
-- If healthy, disease = "CropName: Healthy"
-- Treatment must be actionable (specific fungicide/pesticide names)
-- Fertilizer must include NPK values where possible
-- confidence should reflect your certainty"""
+- CRITICAL: If the leaf looks pristine, green, and vibrant with no visible spots or anomalies, you MUST set disease to "Crop Name: Healthy".
+- If not a plant leaf image, set is_leaf to false.
+- Be specific with disease name (e.g. "Rice: Blast Disease").
+- If pests (insects) are visible, mention them in the treatment or disease name.
+- Treatment must be actionable (specific pesticide names if applicable).
+- Fertilizer must include NPK values where possible.
+- Confidence should reflect your certainty (e.g. 0.98 for healthy, lower for vague symptoms)."""
 
     payload = {
         "contents": [{
