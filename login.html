@@ -646,10 +646,10 @@
     </div>
   </div>
 
+  
   <script>
     (function () {
-      var _open = false, _hist = [], _busy = false, _file = null;
-      
+      var _open = false, _hist = [], _busy = false;
       
       window.farmBotToggle = function () {
         _open = !_open;
@@ -664,32 +664,29 @@
         var m = document.getElementById('farmbot-msgs');
         var d = document.createElement('div');
         d.className = 'bmsg ' + role;
-        d.innerHTML = txt.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        d.innerHTML = txt.replace(/
+/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         m.appendChild(d); m.scrollTop = m.scrollHeight; return d;
       }
       window.farmBotSend = async function () {
         var inp = document.getElementById('farmbot-input');
         var txt = inp.value.trim();
-        if (!txt && !_file) return;
+        if (!txt) return;
         
         inp.value = ''; inp.style.height = 'auto';
-        
         _busy = true; document.getElementById('farmbot-send').disabled = true;
         document.getElementById('farmbot-chips').style.display = 'none';
 
         addMsg(txt, 'buser');
-
-        
-          _hist.push({ role: 'user', content: txt });
-        }
+        _hist.push({ role: 'user', content: txt });
 
         var td = addMsg('Thinking...', 'btyping');
         try {
-          var res;
-          
-            res = await fetch('/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: txt, history: _hist.slice(-6) }) });
-          }
-          
+          var res = await fetch('/chat', { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify({ message: txt, history: _hist.slice(-6) }) 
+          });
           var data = await res.json();
           td.remove();
           var reply = data.reply || 'Sorry, could not get a response.';
@@ -697,12 +694,12 @@
           _hist.push({ role: 'assistant', content: reply });
         } catch (e) { td.remove(); addMsg('Connection error. Is the server running?', 'bbot'); }
         
-        window.farmBotClearFile();
         _busy = false; document.getElementById('farmbot-send').disabled = false; inp.focus();
       };
       setTimeout(function () { if (!_open) document.getElementById('farmbot-notif').style.display = 'flex'; }, 3000);
     })();
   </script>
+
   <!-- ===== End FarmAI Chatbot ===== -->
 
 </body>
