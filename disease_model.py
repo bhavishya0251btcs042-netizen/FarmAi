@@ -31,23 +31,26 @@ def _expert_fallback(image_bytes: bytes, crop: str, errors: list = None) -> dict
     
     # 1. Identify Maize/Corn first to prevent false rust-positives
     is_maize = any(x in (crop or "").lower() for x in ["maise", "maize", "corn"])
+    is_rice  = any(x in (crop or "").lower() for x in ["rice", "grain", "paddy"])
     
     # 2. BRIGHTNESS FILTERS
-    # Healthy Yellow Corn is VERY bright (R & G > 220)
-    # Rust is usually darker (R < 210)
-    is_golden_corn = ((R > 210) & (G > 180) & (B < 120))
-    gold_pct = is_healthy_grain = is_golden_corn.sum() / total
+    is_golden_grain = ((R > 210) & (G > 185) & (B < 140))
+    gold_pct = is_golden_grain.sum() / total
     
-    # 3. RUST PATTERN (True Rust is darker orange/brown)
-    rust = ((R > G + 40) & (R > B + 60) & (R < 215) & (G > 40))
+    # 2.1 RICE HUSK DETECTION (Prevents false positives on dry husks)
+    is_husk = ((R > 180) & (G > 160) & (B < 120))
+    husk_pct = is_husk.sum() / total
+    
+    # 3. RUST PATTERN (True Rust is darker/dirtier orange)
+    rust = ((R > G + 45) & (R > B + 65) & (R < 210) & (G > 40))
     r_pct = rust.sum() / total
     
     # --- LOGIC GATE ---
-    if is_maize and gold_pct > 0.02:
+    if (is_maize or is_rice) and (gold_pct > 0.01 or (is_rice and husk_pct > 0.05)):
         return {
-            "disease": "Maize: Healthy (Mature)", "confidence": 0.98,
-            "treatment": f"Normal harvest-ready grain detected. No disease found. {tag}",
-            "fertilizer": "N/A - Harvest ready.", "method": "Core Logic 9.0"
+            "disease": f"{'Rice' if is_rice else 'Maize'}: Healthy (Mature)", "confidence": 0.98,
+            "treatment": f"Normal harvest-ready grain detected. No disease. {tag}",
+            "fertilizer": "N/A - Ready for harvest.", "method": "Core Logic 10.0"
         }
         
     if r_pct > 0.005: # High sensitivity for spots

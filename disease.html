@@ -1,147 +1,72 @@
 <!DOCTYPE html>
-<html lang="en" class="dark scroll-smooth">
+<html lang="en">
 
 <head>
-
-<script>
-    // FARMAI STABILITY SHIELD
-    (function() {
-        const _noop = function() {};
-        if (window.console) {
-            const __warn = console.warn;
-            console.warn = function(...args) {
-                if (typeof args[0] === 'string' && (args[0].includes('tailwindcss') || args[0].includes('attribute d'))) return;
-                __warn.apply(console, args);
-            };
-        }
-        window.addEventListener('unhandledrejection', function(e) { 
-            if (e.reason && e.reason.message && e.reason.message.includes('message port')) {
-                e.preventDefault(); e.stopPropagation(); 
-            }
-        }, true);
-        if (typeof SVGPathElement !== 'undefined') {
-            const _setAttr = SVGPathElement.prototype.setAttribute;
-            SVGPathElement.prototype.setAttribute = function(name, value) {
-                if (name === 'd' && (typeof value !== 'string' || value.includes('undefined') || value.startsWith('tc'))) return;
-                try { return _setAttr.apply(this, arguments); } catch (e) {}
-            };
-        }
-    })();
-</script>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-
-    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FarmAI | Disease Detection</title>
-    <link rel="icon" type="image/png" href="logo/logo.png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        if (!localStorage.getItem('token')) {
-            window.location.href = '/login-page';
-        }
-        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-    </script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['Plus Jakarta Sans', 'sans-serif'],
-                        display: ['Outfit', 'sans-serif'],
-                    },
                     colors: {
                         brand: {
+                            50: '#f0fdf4',
                             500: '#10b981',
                             600: '#059669',
                         },
-                        deep: '#020617',
+                        deep: '#020617'
+                    },
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        display: ['Playfair Display', 'serif'],
                     }
                 }
             }
         }
     </script>
+
     <style>
-        body {
-            background-color: #ffffff;
-            color: #000000;
-            transition: background-color 0.3s, color 0.3s;
-            background-image:
-                radial-gradient(circle at 100% 100%, rgba(16, 185, 129, 0.03) 0%, transparent 40%);
-        }
-
-        .dark body {
-            background-color: #020617;
-            color: #ffffff;
-            background-image: radial-gradient(circle at 100% 100%, rgba(16, 185, 129, 0.05) 0%, transparent 40%);
-        }
-
         .glass-card {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(226, 232, 240, 1);
-            transition: all 0.3s ease;
-        }
-
-        .dark .glass-card {
-            background: rgba(15, 23, 42, 0.6);
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
         .drop-zone {
-            border: 2px dashed rgba(16, 185, 129, 0.2);
-            transition: all 0.3s ease;
+            border: 2px dashed rgba(16, 185, 129, 0.3);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .drop-zone.active {
             border-color: #10b981;
             background: rgba(16, 185, 129, 0.05);
-            transform: scale(1.01);
+            transform: scale(1.02);
         }
 
         .scanner-line {
-            height: 2px;
+            width: 100%;
+            height: 4px;
             background: linear-gradient(90deg, transparent, #10b981, transparent);
             position: absolute;
-            width: 100%;
             top: 0;
-            animation: scan 2s linear infinite;
+            left: 0;
+            z-index: 30;
             display: none;
+            animation: scan 2s linear infinite;
+            box-shadow: 0 0 15px #10b981;
         }
 
         @keyframes scan {
-            0% {
-                top: 0;
-            }
-
-            100% {
-                top: 100%;
-            }
+            0% { top: 0; }
+            50% { top: 100%; }
+            100% { top: 0; }
         }
 
         .gradient-text-green {
@@ -150,646 +75,157 @@
             background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .animate-fadeIn {
-            animation: fadeIn 0.8s ease-out forwards;
-        }
     </style>
 </head>
 
-<body class="text-slate-200 min-h-screen font-sans flex flex-col items-center pb-20">
+<body class="text-slate-200 min-h-screen font-sans flex flex-col items-center pb-20 bg-slate-900">
 
     <!-- Header -->
-    <header
-        class="w-full h-20 flex items-center justify-between px-8 border-b border-slate-200 dark:border-white/5 bg-white/80 dark:bg-deep/50 backdrop-blur-md sticky top-0 z-50 transition-colors duration-300">
+    <header class="w-full h-20 flex items-center justify-between px-8 border-b border-white/5 bg-deep/50 backdrop-blur-md sticky top-0 z-50">
         <div class="flex items-center gap-3">
-            <div
-                class="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center p-1.5">
+            <div class="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center p-1.5">
                 <img src="logo/logo.png" alt="Logo" class="w-full h-full object-contain">
             </div>
-            <h1 class="font-display text-xl font-bold text-slate-900 dark:text-white leading-none">Farm<span
-                    class="text-brand-500">AI</span></h1>
+            <h1 class="font-display text-xl font-bold text-white leading-none">Farm<span class="text-brand-500">AI</span></h1>
         </div>
         <div class="flex items-center gap-6">
-            <!-- Theme Toggle -->
-            <button id="theme-toggle"
-                class="p-2.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:text-brand-500 transition-all">
-                <i class="fas fa-moon dark:hidden"></i>
-                <i class="fas fa-sun hidden dark:block"></i>
-            </button>
-            <a href="/history-page"
-                class="text-xs font-bold text-slate-400 hover:text-slate-900 dark:hover:text-white uppercase tracking-widest transition-colors">History</a>
-            <a href="/"
-                class="text-xs font-bold text-slate-400 hover:text-slate-900 dark:hover:text-white uppercase tracking-widest transition-colors">Return
-                Dashboard</a>
+            <a href="/history-page" class="text-xs font-bold text-slate-400 hover:text-white uppercase tracking-widest transition-colors">History</a>
+            <a href="/" class="text-xs font-bold text-slate-400 hover:text-white uppercase tracking-widest transition-colors">Dashboard</a>
         </div>
     </header>
 
-    <main class="max-w-4xl w-full px-6 mt-16 animate-fadeIn text-center">
-
+    <main class="max-w-4xl w-full px-6 mt-16 text-center">
         <div class="mb-12">
-            <h2 class="font-display text-5xl font-extrabold text-slate-900 dark:text-white mb-4">Plant Health <span
-                    class="gradient-text-green">Vision</span></h2>
-            <p class="text-slate-500 text-lg max-w-2xl mx-auto">Upload a clear photo of a plant leaf to identify
-                diseases and receive immediate treatment suggestions.</p>
+            <h2 class="font-display text-5xl font-extrabold text-white mb-4">Plant Health <span class="gradient-text-green">Vision</span></h2>
+            <p class="text-slate-500 text-lg max-w-2xl mx-auto">Upload a photo to identify diseases with multi-tier AI diagnostics.</p>
         </div>
 
         <div class="grid md:grid-cols-2 gap-8 items-start">
-
-            <!-- Visual Input Area -->
-            <div class="glass-card rounded-[2.5rem] p-6 lg:p-8 flex flex-col h-[500px]">
-                <div id="scannerContainer" class="drop-zone flex-grow relative overflow-hidden group rounded-3xl">
+            <div class="glass-card rounded-[2.5rem] p-6 flex flex-col h-[500px]">
+                <div id="scannerContainer" class="drop-zone flex-grow relative overflow-hidden rounded-3xl">
                     <div id="scannerLine" class="scanner-line"></div>
-
-                    <!-- 1. Video Stream -->
-                    <video id="cameraFeed" class="hidden absolute inset-0 z-10 w-full h-full object-cover" autoplay
-                        playsinline muted></video>
-
-                    <!-- 2. Static Preview -->
                     <img id="previewImage" class="hidden absolute inset-0 w-full h-full object-contain z-20">
-
-                    <!-- 3. UI Overlays -->
-                    <div id="initialOverlay"
-                        class="absolute inset-0 z-40 flex flex-col items-center justify-center bg-white/50 dark:bg-deep/50 backdrop-blur-sm transition-all duration-500">
-                        <div
-                            class="w-20 h-20 rounded-full bg-brand-500/10 flex items-center justify-center mb-6 scale-110">
-                            <i class="fas fa-camera text-brand-500 text-3xl"></i>
+                    
+                    <div id="initialOverlay" class="absolute inset-0 z-40 flex flex-col items-center justify-center bg-deep/50 backdrop-blur-sm">
+                        <div class="w-20 h-20 rounded-full bg-brand-500/10 flex items-center justify-center mb-6">
+                            <i class="fas fa-upload text-brand-500 text-3xl"></i>
                         </div>
-                        <h3 class="text-xl font-black text-slate-900 dark:text-white mb-2 uppercase tracking-tight">
-                            Image Input</h3>
-                        <p class="text-xs text-slate-500 mb-8 max-w-[200px] text-center">Capture live plant biometrics
-                            or upload data</p>
-
-                        <div class="flex flex-col items-center gap-4">
-                            <button id="enableCameraButton"
-                                class="bg-brand-500 hover:bg-brand-600 px-10 py-4 rounded-2xl text-white font-black uppercase tracking-widest transition-all shadow-xl shadow-brand-500/20 text-xs">
-                                Open Camera
-                            </button>
-                            <label for="fileInput"
-                                class="cursor-pointer text-xs font-bold text-slate-400 hover:text-brand-500 uppercase tracking-widest">
-                                Or Upload Photo
-                                <input type="file" id="fileInput" accept="image/*" class="hidden">
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- 4. Camera Controls -->
-                    <div id="cameraControls"
-                        class="hidden absolute bottom-8 inset-x-0 z-50 flex justify-center items-center gap-6">
-                        <button id="captureSnapshot"
-                            class="w-16 h-16 bg-white rounded-full border-4 border-brand-500 flex items-center justify-center text-brand-500 shadow-2xl transition-transform hover:scale-110 active:scale-95">
-                            <i class="fas fa-camera text-2xl"></i>
-                        </button>
+                        <input type="file" id="fileInput" accept="image/*" class="hidden" onchange="handleFile(this.files[0])">
+                        <button onclick="document.getElementById('fileInput').click()" class="bg-brand-500 hover:bg-brand-600 px-10 py-4 rounded-2xl text-white font-black uppercase tracking-widest transition-all">Upload Photo</button>
                     </div>
                 </div>
 
-                <!-- Crop Selector -->
                 <div class="mt-4">
-                    <label for="cropSelector" class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 block">
-                        <i class="fas fa-seedling text-brand-500 mr-1"></i> Select Your Crop (for accurate diagnosis)
-                    </label>
-                    <select id="cropSelector"
-                        class="w-full px-4 py-3 rounded-2xl text-sm font-semibold text-white outline-none border border-slate-700 bg-slate-800/80 focus:border-brand-500 transition-all">
-                        <option value="">-- Auto Detect --</option>
-                        <option value="almond">Almond</option>
-                        <option value="apple">Apple</option>
-                        <option value="apricot">Apricot</option>
-                        <option value="artichoke">Artichoke</option>
-                        <option value="asparagus">Asparagus</option>
-                        <option value="banana">Banana</option>
-                        <option value="barley">Barley</option>
-                        <option value="beetroot">Beetroot</option>
-                        <option value="bell pepper">Bell Pepper</option>
-                        <option value="black pepper">Black Pepper</option>
-                        <option value="blackberry">Blackberry</option>
-                        <option value="blackgram">Blackgram</option>
-                        <option value="blueberry">Blueberry</option>
-                        <option value="broccoli">Broccoli</option>
-                        <option value="buckwheat">Buckwheat</option>
-                        <option value="cabbage">Cabbage</option>
-                        <option value="canola">Canola</option>
-                        <option value="cardamom">Cardamom</option>
-                        <option value="carrot">Carrot</option>
-                        <option value="cashew">Cashew</option>
-                        <option value="cassava">Cassava</option>
-                        <option value="cauliflower">Cauliflower</option>
-                        <option value="celery">Celery</option>
-                        <option value="cherry">Cherry</option>
-                        <option value="chickpea">Chickpea</option>
-                        <option value="chili">Chili</option>
-                        <option value="cinnamon">Cinnamon</option>
-                        <option value="clove">Clove</option>
-                        <option value="cocoa">Cocoa</option>
-                        <option value="coconut">Coconut</option>
-                        <option value="coffee">Coffee</option>
-                        <option value="cotton">Cotton</option>
-                        <option value="cranberry">Cranberry</option>
-                        <option value="cucumber">Cucumber</option>
-                        <option value="dates">Dates</option>
-                        <option value="eggplant">Eggplant</option>
-                        <option value="fava beans">Fava Beans</option>
-                        <option value="fig">Fig</option>
-                        <option value="flax">Flax</option>
-                        <option value="garlic">Garlic</option>
-                        <option value="grapes">Grapes</option>
-                        <option value="green beans">Green Beans</option>
-                        <option value="guava">Guava</option>
-                        <option value="hazelnut">Hazelnut</option>
-                        <option value="jute">Jute</option>
-                        <option value="kale">Kale</option>
-                        <option value="kidneybeans">Kidneybeans</option>
-                        <option value="kiwi">Kiwi</option>
-                        <option value="lentil">Lentil</option>
-                        <option value="lettuce">Lettuce</option>
-                        <option value="lima beans">Lima Beans</option>
-                        <option value="macadamia">Macadamia</option>
-                        <option value="maize">Maize</option>
-                        <option value="mango">Mango</option>
-                        <option value="millet">Millet</option>
-                        <option value="mothbeans">Mothbeans</option>
-                        <option value="mungbean">Mungbean</option>
-                        <option value="muskmelon">Muskmelon</option>
-                        <option value="mustard">Mustard</option>
-                        <option value="nectarine">Nectarine</option>
-                        <option value="nutmeg">Nutmeg</option>
-                        <option value="oats">Oats</option>
-                        <option value="okra">Okra</option>
-                        <option value="olive">Olive</option>
-                        <option value="onion">Onion</option>
-                        <option value="orange">Orange</option>
-                        <option value="papaya">Papaya</option>
-                        <option value="peach">Peach</option>
-                        <option value="peanuts">Peanuts</option>
-                        <option value="pear">Pear</option>
-                        <option value="peas">Peas</option>
-                        <option value="pecan">Pecan</option>
-                        <option value="pigeonpeas">Pigeonpeas</option>
-                        <option value="pineapple">Pineapple</option>
-                        <option value="pistachio">Pistachio</option>
-                        <option value="plum">Plum</option>
-                        <option value="pomegranate">Pomegranate</option>
-                        <option value="potato">Potato</option>
-                        <option value="pumpkin">Pumpkin</option>
-                        <option value="quinoa">Quinoa</option>
-                        <option value="radish">Radish</option>
-                        <option value="raspberry">Raspberry</option>
-                        <option value="rice">Rice</option>
-                        <option value="rubber">Rubber</option>
-                        <option value="safflower">Safflower</option>
-                        <option value="sesame">Sesame</option>
-                        <option value="sorghum">Sorghum</option>
-                        <option value="soybeans">Soybeans</option>
-                        <option value="spinach">Spinach</option>
-                        <option value="squash">Squash</option>
-                        <option value="strawberry">Strawberry</option>
-                        <option value="sugarcane">Sugarcane</option>
-                        <option value="sunflower">Sunflower</option>
-                        <option value="sweet potato">Sweet Potato</option>
-                        <option value="tea">Tea</option>
-                        <option value="turnip">Turnip</option>
-                        <option value="walnut">Walnut</option>
-                        <option value="watermelon">Watermelon</option>
+                    <select id="cropSelector" class="w-full px-4 py-3 rounded-2xl text-sm font-semibold text-white outline-none border border-slate-700 bg-slate-800/80 focus:border-brand-500 transition-all">
+                        <option value="">-- Auto Detect Crop --</option>
+                        <option value="maize">Maize/Corn</option>
+                        <option value="rice">Rice/Paddy</option>
                         <option value="wheat">Wheat</option>
-                        <option value="yam">Yam</option>
-                        <option value="zucchini">Zucchini</option>
+                        <option value="apple">Apple</option>
+                        <option value="banana">Banana</option>
                     </select>
                 </div>
             </div>
 
             <!-- Result Section -->
-            <div
-                class="glass-card rounded-[2.5rem] p-10 text-left h-[500px] flex flex-col justify-between border-brand-500/10">
-                <div id="resultContent" class="hidden animate-fadeIn">
-                    <div
-                        class="p-3 bg-brand-500/10 border border-brand-500/20 rounded-2xl inline-flex items-center gap-2 mb-4">
-                        <i class="fas fa-check-circle text-brand-500 text-xs"></i>
-                        <span class="text-[10px] font-black uppercase text-brand-500 tracking-widest">Verified
-                            Diagnosis</span>
+            <div class="glass-card rounded-[2.5rem] p-8 min-h-[500px] flex flex-col items-center justify-center relative overflow-hidden">
+                <div id="emptyResult" class="text-center animate-fadeIn">
+                    <div class="w-24 h-24 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-microscope text-slate-600 text-4xl"></i>
                     </div>
-
-                    <!-- Crop name + disease type tags -->
-                    <div class="flex flex-wrap gap-2 mb-3">
-                        <span
-                            class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-                            <i class="fas fa-seedling mr-1"></i><span id="cropNameTag">--</span>
-                        </span>
-                        <span
-                            class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-orange-500/10 border border-orange-500/20 text-orange-400">
-                            <i class="fas fa-virus mr-1"></i><span id="diseaseTypeTag">--</span>
-                        </span>
-                    </div>
-
-                    <h4 id="diseaseName"
-                        class="font-display text-3xl font-black text-slate-900 dark:text-white mb-2 capitalize leading-tight">
-                        Searching...</h4>
-
-                    <div class="flex items-center gap-4 mb-6">
-                        <div class="flex-grow h-2 bg-slate-200 dark:bg-white/5 rounded-full overflow-hidden">
-                            <div id="confidenceBar" class="h-full bg-brand-500 transition-all duration-1000"
-                                style="width: 0%"></div>
-                        </div>
-                        <span id="confidenceValue" class="text-xs font-black text-brand-500">0%</span>
-                    </div>
-
-                    <div class="space-y-4">
-                        <div
-                            class="p-5 rounded-3xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5">
-                            <span
-                                class="text-[10px] font-black uppercase text-slate-500 block mb-2">Counter-Measure</span>
-                            <p id="treatmentText"
-                                class="text-sm font-medium leading-relaxed text-slate-700 dark:text-slate-300 italic">
-                                Waiting for scan...</p>
-                        </div>
-
-                        <!-- Feedback Section -->
-                        <div id="feedbackSection"
-                            class="p-4 rounded-2xl border border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/3">
-                            <p class="text-[10px] font-black uppercase text-slate-500 mb-3">Is this prediction correct?
-                            </p>
-                            <div class="flex gap-2 mb-3">
-                                <button onclick="markCorrect()" id="btnCorrect"
-                                    class="flex-1 py-2 rounded-xl text-xs font-bold border border-brand-500/30 text-brand-500 hover:bg-brand-500 hover:text-white transition-all">
-                                    <i class="fas fa-check mr-1"></i> Correct
-                                </button>
-                                <button onclick="showCorrection()" id="btnWrong"
-                                    class="flex-1 py-2 rounded-xl text-xs font-bold border border-red-500/30 text-red-400 hover:bg-red-500 hover:text-white transition-all">
-                                    <i class="fas fa-times mr-1"></i> Wrong
-                                </button>
-                            </div>
-                            <div id="correctionBox" class="hidden">
-                                <input type="text" id="correctionInput" placeholder="Enter the correct disease name..."
-                                    class="w-full px-3 py-2 rounded-xl text-xs text-white bg-slate-800 border border-slate-600 outline-none focus:border-brand-500 mb-2">
-                                <button onclick="submitCorrection()"
-                                    class="w-full py-2 rounded-xl text-xs font-bold bg-brand-500 text-white hover:bg-brand-600 transition-all">
-                                    Submit Correction
-                                </button>
-                            </div>
-                            <p id="feedbackMsg" class="text-xs text-center mt-2 hidden"></p>
-                        </div>
-                    </div>
+                    <p class="text-slate-500 font-medium">Capture or upload an image to start the AI bio-diagnostic scan</p>
                 </div>
 
-                <div id="emptyResult" class="flex flex-col items-center justify-center flex-grow opacity-30 py-20">
-                    <i class="fas fa-robot text-7xl mb-6"></i>
-                    <p class="font-black tracking-[.2em] uppercase text-xs">Waiting for Input Stream</p>
+                <div id="resultContent" class="hidden w-full animate-fadeIn text-left">
+                    <div class="flex items-center gap-2 mb-6">
+                        <span class="px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-500 text-[10px] font-black uppercase tracking-widest">Verified Diagnosis</span>
+                    </div>
+
+                    <h3 id="diseaseName" class="text-3xl font-black text-white mb-4 leading-tight">Disease Name</h3>
+                    
+                    <div class="mb-8">
+                        <div class="flex justify-between text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">
+                            <span>Diagnostic Confidence</span>
+                            <span id="confidenceValue">0%</span>
+                        </div>
+                        <div class="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+                            <div id="confidenceBar" class="h-full bg-brand-500 transition-all duration-1000" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="p-6 rounded-3xl bg-white/5 border border-white/5 mb-8">
+                        <h4 class="text-xs font-black text-brand-500 uppercase tracking-widest mb-3">Counter-Measure</h4>
+                        <p id="treatmentText" class="text-sm text-slate-300 leading-relaxed italic">Treatment instructions...</p>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <button class="flex-1 py-3 rounded-2xl bg-white/5 border border-white/10 text-xs font-bold hover:bg-brand-500 transition-all" onclick="location.reload()">New Scan</button>
+                    </div>
                 </div>
-
-                <div class="mt-8 pt-6 border-t border-slate-200 dark:border-white/5 flex gap-4">
-                    <button onclick="location.reload()"
-                        class="flex-grow py-4 rounded-xl bg-slate-900 text-white font-bold uppercase tracking-widest text-[10px] transition-all hover:bg-brand-500 shadow-lg">New
-                        Scan</button>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- Features -->
-        <div class="grid sm:grid-cols-3 gap-6 mt-16 text-left">
-            <div class="glass-card p-6 rounded-3xl">
-                <i class="fas fa-bolt text-brand-500 mb-4"></i>
-                <h5 class="font-bold text-white mb-1">Instant Results</h5>
-                <p class="text-[11px] text-slate-500 leading-normal">Our neural architecture analyzes 1024+ features per
-                    second.</p>
-            </div>
-            <div class="glass-card p-6 rounded-3xl">
-                <i class="fas fa-shield-virus text-brand-500 mb-4"></i>
-                <h5 class="font-bold text-white mb-1">Pathogen Database</h5>
-                <p class="text-[11px] text-slate-500 leading-normal">Cross-referenced with global agricultural disease
-                    repositories.</p>
-            </div>
-            <div class="glass-card p-6 rounded-3xl">
-                <i class="fas fa-leaf text-brand-500 mb-4"></i>
-                <h5 class="font-bold text-white mb-1">Eco-Treatment</h5>
-                <p class="text-[11px] text-slate-500 leading-normal">Prioritizing biological and sustainable recovery
-                    solutions.</p>
             </div>
         </div>
     </main>
 
     <script>
-        // DOM Elements
-        const cameraFeed = document.getElementById('cameraFeed');
-        const enableCameraButton = document.getElementById('enableCameraButton');
-        const captureSnapshot = document.getElementById('captureSnapshot');
-        const cameraControls = document.getElementById('cameraControls');
-        const initialOverlay = document.getElementById('initialOverlay');
         const previewImage = document.getElementById('previewImage');
+        const initialOverlay = document.getElementById('initialOverlay');
         const scannerLine = document.getElementById('scannerLine');
-        const fileInput = document.getElementById('fileInput');
-
         const emptyResult = document.getElementById('emptyResult');
         const resultContent = document.getElementById('resultContent');
-        const scannerContainer = document.getElementById('scannerContainer');
 
-        let videoStream = null;
-
-        // Theme Toggle
-        const themeToggle = document.getElementById('theme-toggle');
-        if (themeToggle) {
-            themeToggle.addEventListener('click', () => {
-                document.documentElement.classList.toggle('dark');
-                localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-            });
+        function handleFile(file) {
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImage.src = e.target.result;
+                previewImage.classList.remove('hidden');
+                initialOverlay.classList.add('hidden');
+                analyzeImage(file);
+            };
+            reader.readAsDataURL(file);
         }
 
-        // 1. Camera Access
-        enableCameraButton.addEventListener('click', async () => {
-            try {
-                videoStream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'environment', width: { ideal: 1280 } },
-                    audio: false
-                });
-
-                cameraFeed.srcObject = videoStream;
-                cameraFeed.classList.remove('hidden');
-                cameraControls.classList.remove('hidden');
-                initialOverlay.classList.add('opacity-0', 'pointer-events-none');
-                scannerLine.style.display = 'block';
-            } catch (err) {
-                console.error("Camera Error:", err);
-                alert("Please enable camera permissions to use live detection.");
-            }
-        });
-
-        // 2. Capture Logic
-        captureSnapshot.addEventListener('click', () => {
-            const canvas = document.createElement('canvas'); // Temporary canvas
-            canvas.width = cameraFeed.videoWidth;
-            canvas.height = cameraFeed.videoHeight;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(cameraFeed, 0, 0, canvas.width, canvas.height);
-
-            const dataUrl = canvas.toDataURL('image/jpeg');
-            previewImage.src = dataUrl;
-            previewImage.classList.remove('hidden');
-
-            stopCamera();
-
-            canvas.toBlob(blob => {
-                const file = new File([blob], "capture.jpg", { type: "image/jpeg" });
-                analyzeImage(file);
-            }, 'image/jpeg');
-        });
-
-        // 3. File Input helper
-        fileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                previewImage.src = event.target.result;
-                previewImage.classList.remove('hidden');
-                initialOverlay.classList.add('opacity-0', 'pointer-events-none');
-                scannerLine.style.display = 'block';
-                analyzeImage(file);
-            }
-            reader.readAsDataURL(file);
-        });
-
-        // 4. Analysis Logic
         async function analyzeImage(file) {
             const token = localStorage.getItem('token');
-            if (!token) {
-                alert("Authentication Required:\nPlease log in or create an account to use the FarmAI diagnostic features.");
-                window.location.href = '/login-page';
-                return;
-            }
-
+            scannerLine.style.display = 'block';
             emptyResult.classList.add('hidden');
             resultContent.classList.add('hidden');
-            scannerLine.style.display = 'block';
 
             const formData = new FormData();
             formData.append('file', file);
-            const cropVal = document.getElementById('cropSelector')?.value || '';
-            if (cropVal) formData.append('crop', cropVal);
+            const crop = document.getElementById('cropSelector').value;
+            if (crop) formData.append('crop', crop);
 
             try {
                 const res = await fetch('/predict-disease', {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}` },
-                    body: formData
+                    body: formData,
+                    cache: 'no-store'
                 });
-
-                if (res.status === 401) {
-                    alert("Session expired. Please log in again.");
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('user');
-                    window.location.href = '/login-page';
-                    return;
-                }
-
+                
                 const data = await res.json();
-
-                // Mock scanning delay
+                
                 setTimeout(() => {
                     scannerLine.style.display = 'none';
                     displayResult(data);
                 }, 1500);
-
             } catch (err) {
-                alert("Analysis failed. Engine unreachable.");
+                alert("Scan failed. Engine unreachable.");
                 scannerLine.style.display = 'none';
                 emptyResult.classList.remove('hidden');
             }
         }
 
-        function displayResult(res) {
-            if (res.error) {
-                alert(res.message);
-                emptyResult.classList.remove('hidden');
-                resultContent.classList.add('hidden');
-                return;
-            }
+        function displayResult(data) {
+            if (data.error) { alert(data.error); return; }
             resultContent.classList.remove('hidden');
-            document.getElementById('diseaseName').textContent = res.disease;
-            document.getElementById('treatmentText').textContent = res.treatment;
-
-            const conf = res.confidence * 100;
+            document.getElementById('diseaseName').textContent = data.disease;
+            document.getElementById('treatmentText').textContent = data.treatment;
+            const conf = (data.confidence * 100);
             document.getElementById('confidenceValue').textContent = conf.toFixed(1) + '%';
-            setTimeout(() => { document.getElementById('confidenceBar').style.width = conf + '%'; }, 100);
-
-            // Reset feedback section
-            document.getElementById('btnCorrect').innerHTML = '<i class="fas fa-check mr-1"></i> Correct';
-            document.getElementById('btnCorrect').className = 'flex-1 py-2 rounded-xl text-xs font-bold border border-brand-500/30 text-brand-500 hover:bg-brand-500 hover:text-white transition-all';
-            document.getElementById('btnWrong').innerHTML = '<i class="fas fa-times mr-1"></i> Wrong';
-            document.getElementById('btnWrong').className = 'flex-1 py-2 rounded-xl text-xs font-bold border border-red-500/30 text-red-400 hover:bg-red-500 hover:text-white transition-all';
-            document.getElementById('correctionBox').classList.add('hidden');
-            document.getElementById('correctionInput').value = '';
-            document.getElementById('feedbackMsg').classList.add('hidden');
-
-            lastDiagnosis = res;
-            saveDiseaseToHistory(res);
-        }
-
-        async function saveDiseaseToHistory(res) {
-            const user = JSON.parse(localStorage.getItem('user'));
-            if (!user) return;
-            try {
-                await fetch('/save-disease-history', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        username: user.username,
-                        disease_name: res.disease,
-                        confidence: res.confidence,
-                        treatment: res.treatment
-                    })
-                });
-            } catch (err) { console.error("History sync failed", err); }
-        }
-
-        function stopCamera() {
-            if (videoStream) {
-                videoStream.getTracks().forEach(track => track.stop());
-            }
-            cameraFeed.classList.add('hidden');
-            cameraControls.classList.add('hidden');
-            scannerLine.style.display = 'none';
-        }
-
-        // ---- Feedback functions ----
-        let lastDiagnosis = null;
-
-        function markCorrect() {
-            document.getElementById('btnCorrect').innerHTML = '<i class="fas fa-check mr-1"></i> Thanks!';
-            document.getElementById('btnCorrect').classList.add('bg-brand-500', 'text-white');
-            document.getElementById('btnWrong').classList.add('opacity-30', 'pointer-events-none');
-            showFeedbackMsg('Thank you for confirming the diagnosis!', '#10b981');
-        }
-
-        function showCorrection() {
-            document.getElementById('correctionBox').classList.remove('hidden');
-            document.getElementById('correctionInput').focus();
-            document.getElementById('btnWrong').innerHTML = '<i class="fas fa-times mr-1"></i> Wrong';
-        }
-
-        function submitCorrection() {
-            const val = document.getElementById('correctionInput').value.trim();
-            if (!val) { showFeedbackMsg('Please enter the correct disease name.', '#ef4444'); return; }
-
-            // Update the displayed disease name with user correction
-            document.getElementById('diseaseName').textContent = val;
-            document.getElementById('correctionBox').classList.add('hidden');
-            document.getElementById('btnWrong').classList.add('opacity-30', 'pointer-events-none');
-            document.getElementById('btnCorrect').classList.add('opacity-30', 'pointer-events-none');
-            showFeedbackMsg('Correction saved. Thank you for improving FarmAI!', '#10b981');
-
-            // Save corrected name to history if user is logged in
-            if (lastDiagnosis) {
-                lastDiagnosis.disease_name = val;
-                saveDiseaseToHistory(lastDiagnosis);
-            }
-        }
-
-        function showFeedbackMsg(msg, color) {
-            const el = document.getElementById('feedbackMsg');
-            el.textContent = msg;
-            el.style.color = color;
-            el.classList.remove('hidden');
+            document.getElementById('confidenceBar').style.width = conf + '%';
         }
     </script>
-  
-  <!-- ===== FarmAI Chatbot Widget ===== -->
-  <style>
-    #farmbot-btn { position: fixed; bottom: 28px; right: 28px; z-index: 9999; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #10b981, #059669); border: none; cursor: pointer; box-shadow: 0 8px 32px rgba(16, 185, 129, 0.4); display: flex; align-items: center; justify-content: center; transition: transform 0.2s, box-shadow 0.2s; }
-    #farmbot-btn:hover { transform: scale(1.1); box-shadow: 0 12px 40px rgba(16, 185, 129, 0.5); }
-    #farmbot-btn .bot-notif { position: absolute; top: -4px; right: -4px; width: 18px; height: 18px; background: #ef4444; border-radius: 50%; font-size: 10px; font-weight: 800; color: white; display: flex; align-items: center; justify-content: center; border: 2px solid #020617; }
-    #farmbot-window { position: fixed; bottom: 100px; right: 28px; z-index: 9998; width: 370px; max-height: 560px; background: #0f172a; border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 24px; box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6); display: flex; flex-direction: column; overflow: hidden; transform: scale(0.8) translateY(20px); opacity: 0; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); pointer-events: none; }
-    #farmbot-window.bot-open { transform: scale(1) translateY(0); opacity: 1; pointer-events: all; }
-    .bot-header { background: linear-gradient(135deg, #10b981, #059669); padding: 16px 20px; display: flex; align-items: center; gap: 12px; }
-    .bot-avatar { width: 40px; height: 40px; border-radius: 50%; background: rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
-    .bot-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; max-height: 360px; scroll-behavior: smooth; }
-    .bot-messages::-webkit-scrollbar { width: 4px; }
-    .bot-messages::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
-    .bmsg { max-width: 85%; padding: 10px 14px; border-radius: 16px; font-size: 13px; line-height: 1.6; word-break: break-word; }
-    .bmsg.bbot { background: #1e293b; color: #e2e8f0; border-bottom-left-radius: 4px; align-self: flex-start; }
-    .bmsg.buser { background: linear-gradient(135deg, #10b981, #059669); color: white; border-bottom-right-radius: 4px; align-self: flex-end; }
-    .bmsg.btyping { background: #1e293b; color: #64748b; align-self: flex-start; font-style: italic; }
-    .bot-input-row { padding: 12px 16px; border-top: 1px solid rgba(255, 255, 255, 0.05); display: flex; gap: 8px; align-items: center; }
-    .bot-inp { flex: 1; background: #1e293b; border: 1px solid rgba(148, 163, 184, 0.1); border-radius: 12px; padding: 10px 14px; color: white; font-size: 13px; outline: none; font-family: inherit; resize: none; max-height: 80px; transition: border-color 0.2s; }
-    .bot-inp:focus { border-color: #10b981; }
-    .bot-send-btn { width: 40px; height: 40px; border-radius: 12px; border: none; cursor: pointer; background: linear-gradient(135deg, #10b981, #059669); color: white; display: flex; align-items: center; justify-content: center; transition: transform 0.15s; flex-shrink: 0; }
-    .bot-send-btn:hover { transform: scale(1.05); }
-    .bot-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 16px 12px; }
-    .bchip { padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); color: #10b981; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
-  </style>
-
-  <button id="farmbot-btn" onclick="farmBotToggle()" title="FarmAI Assistant">
-    <span style="font-size:24px;">🌾</span>
-    <span class="bot-notif" id="farmbot-notif" style="display:none;">1</span>
-  </button>
-
-  <div id="farmbot-window">
-    <div class="bot-header">
-      <div class="bot-avatar">🌾</div>
-      <div><p style="margin:0;font-weight:800;color:white;font-size:14px;">FarmAI Assistant</p><p style="margin:0;font-size:11px;color:rgba(255,255,255,0.75);">Agriculture Expert • Online</p></div>
-      <button onclick="farmBotToggle()" style="margin-left:auto;background:none;border:none;color:rgba(255,255,255,0.7);cursor:pointer;font-size:20px;line-height:1;">&#x2715;</button>
-    </div>
-    <div class="bot-messages" id="farmbot-msgs">
-      <div class="bmsg bbot">👋 Hi! I am your <strong>FarmAI Assistant</strong>. Ask me anything!</div>
-    </div>
-    <div class="bot-chips" id="farmbot-chips">
-      <span class="bchip" onclick="farmBotChip('Best crops for clay soil?')">🌱 Soil Help</span>
-      <span class="bchip" onclick="farmBotChip('How to treat rice blast?')">🍚 Disease Hub</span>
-    </div>
-    <div class="bot-input-row">
-      <textarea id="farmbot-input" class="bot-inp" rows="1" placeholder="Ask anything..." onkeydown="farmBotKey(event)" oninput="farmBotResize(this)"></textarea>
-      <button class="bot-send-btn" id="farmbot-send" onclick="farmBotSend()">&#9658;</button>
-    </div>
-  </div>
-
-  <script>
-    (function () {
-      var _open = false, _hist = [], _busy = false;
-      window.farmBotToggle = function () {
-        _open = !_open;
-        var win = document.getElementById('farmbot-window'), notif = document.getElementById('farmbot-notif');
-        if(win) win.classList.toggle('bot-open', _open);
-        if(notif) notif.style.display = _open ? 'none' : 'flex';
-        if (_open) { var inp = document.getElementById('farmbot-input'); if(inp) inp.focus(); }
-      };
-      window.farmBotKey = function (e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); farmBotSend(); } };
-      window.farmBotResize = function (el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 80) + 'px'; };
-      window.farmBotChip = function (t) { var inp = document.getElementById('farmbot-input'); if(inp) inp.value = t; farmBotSend(); };
-      function addMsg(txt, role) {
-        var m = document.getElementById('farmbot-msgs'); if(!m) return;
-        var d = document.createElement('div'); d.className = 'bmsg ' + role;
-        d.innerHTML = txt.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        m.appendChild(d); m.scrollTop = m.scrollHeight; return d;
-      }
-      window.farmBotSend = async function () {
-        var inp = document.getElementById('farmbot-input'); if(!inp) return;
-        var txt = inp.value.trim(); if (!txt || _busy) return;
-        inp.value = ''; inp.style.height = 'auto'; _busy = true; 
-        var sBtn = document.getElementById('farmbot-send'); if(sBtn) sBtn.disabled = true;
-        var chips = document.getElementById('farmbot-chips'); if(chips) chips.style.display = 'none';
-        addMsg(txt, 'buser'); _hist.push({ role: 'user', content: txt });
-        var td = addMsg('Thinking...', 'btyping');
-        try {
-          var res = await fetch('/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: txt, history: _hist.slice(-8) }) });
-          var data = await res.json(); if(td) td.remove();
-          var reply = data.reply || 'No response.'; addMsg(reply, 'bbot');
-          _hist.push({ role: 'assistant', content: reply });
-        } catch (e) { if(td) td.remove(); addMsg('Error connecting.', 'bbot'); }
-        _busy = false; if(sBtn) sBtn.disabled = false; inp.focus();
-      };
-      setTimeout(function () { if (!_open) { var n = document.getElementById('farmbot-notif'); if(n) n.style.display = 'flex'; } }, 3000);
-    })();
-  </script>
-
 </body>
 </html>
