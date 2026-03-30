@@ -650,6 +650,7 @@ def serve_login(): return FileResponse("login.html")
 def serve_register(): return FileResponse("register.html")
 
 @app.get("/verify")
+@app.get("/verify-page")
 @app.get("/verify.html")
 def serve_verify(): return FileResponse("verify.html")
 
