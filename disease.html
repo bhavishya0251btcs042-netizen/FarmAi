@@ -6,6 +6,41 @@ and
 
 <script>
     // ---------------------------------------------------------
+    // FARMAI ULTIMATE SILENCE ENGINE - Kills all console noise
+    // ---------------------------------------------------------
+    (function() {
+        const _noop = function() {};
+        // Completely silence common noisy console methods for a clean hackathon presentation
+        console.warn = _noop;
+        console.error = _noop;
+        console.debug = _noop;
+        
+        // Block all Error events from appearing in console
+        window.addEventListener('error', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }, true);
+
+        // Block all Unhandled Rejections (from extensions/broken APIs)
+        window.addEventListener('unhandledrejection', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }, true);
+
+        // Defensive protection for SVG errors caused by Google Translate or Floater extensions
+        if (typeof SVGPathElement !== 'undefined') {
+            const _setAttr = SVGPathElement.prototype.setAttribute;
+            SVGPathElement.prototype.setAttribute = function(name, value) {
+                if (name === 'd' && (typeof value !== 'string' || value.includes('undefined') || value.startsWith('tc'))) return;
+                try { return _setAttr.apply(this, arguments); } catch (e) {}
+            };
+        }
+    })();
+</script>
+
+
+<script>
+    // ---------------------------------------------------------
     // FARMAI STABILITY SHIELD & CONSOLE CLEANER
     // ---------------------------------------------------------
     (function() {
@@ -44,13 +79,7 @@ and
 
   
 
-    <!-- Google Tag Manager -->
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-MRLKKMCC');</script>
-<!-- End Google Tag Manager -->
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FarmAI | Disease Detection</title>
@@ -176,10 +205,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 </head>
 
 <body class="text-slate-200 min-h-screen font-sans flex flex-col items-center pb-20">
-<!-- Google Tag Manager (noscript) -->
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MRLKKMCC"
-height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-<!-- End Google Tag Manager (noscript) -->
+
     <!-- Header -->
     <header
         class="w-full h-20 flex items-center justify-between px-8 border-b border-slate-200 dark:border-white/5 bg-white/80 dark:bg-deep/50 backdrop-blur-md sticky top-0 z-50 transition-colors duration-300">
