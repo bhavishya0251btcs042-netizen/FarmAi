@@ -346,7 +346,7 @@
             <!-- Weather Group -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div class="space-y-2">
-                <label for="temperature"
+                <label for="temperature_val"
                   class="text-xs font-bold uppercase tracking-widest text-slate-400 ml-1 flex justify-between items-center">
                   <span>Avg Temperature (°C)</span>
                   <button type="button" onclick="window.detectWeather()"
@@ -357,15 +357,15 @@
                 </label>
                 <div class="relative group">
                   <i class="fas fa-temperature-high absolute left-4 top-1/2 -translate-y-1/2 text-brand-500/50"></i>
-                  <input type="number" id="temperature" step="0.1" required
+                  <input type="number" id="temperature_val" step="0.1" required
                     class="input-field w-full pl-11 pr-4 py-4 rounded-2xl text-white outline-none" value="26">
                 </div>
               </div>
               <div class="space-y-2">
-                <label class="text-xs font-bold uppercase tracking-widest text-slate-400 ml-1" for="rainfall">Annual Rainfall (mm)</label>
+                <label class="text-xs font-bold uppercase tracking-widest text-slate-400 ml-1" for="rainfall_val">Annual Rainfall (mm)</label>
                 <div class="relative">
                   <i class="fas fa-cloud-rain absolute left-4 top-1/2 -translate-y-1/2 text-blue-500/50"></i>
-                  <input type="number" id="rainfall" step="0.1" required
+                  <input type="number" id="rainfall_val" step="0.1" required
                     class="input-field w-full pl-11 pr-4 py-4 rounded-2xl text-white outline-none" value="120">
                 </div>
               </div>
@@ -381,20 +381,20 @@
               </div>
               <div class="grid grid-cols-3 gap-4">
                 <div class="space-y-2">
-                  <label class="text-[10px] font-bold text-center block text-slate-500" for="nitrogen">Nitrogen</label>
-                  <input type="number" id="nitrogen" required
+                  <label class="text-[10px] font-bold text-center block text-slate-500" for="nitrogen_val">Nitrogen</label>
+                  <input type="number" id="nitrogen_val" required
                     class="input-field w-full px-4 py-4 rounded-2xl text-center text-white outline-none font-bold"
                     value="90">
                 </div>
                 <div class="space-y-2">
-                  <label class="text-[10px] font-bold text-center block text-slate-500" for="phosphorus">Phosphorus</label>
-                  <input type="number" id="phosphorus" required
+                  <label class="text-[10px] font-bold text-center block text-slate-500" for="phosphorus_val">Phosphorus</label>
+                  <input type="number" id="phosphorus_val" required
                     class="input-field w-full px-4 py-4 rounded-2xl text-center text-white outline-none font-bold"
                     value="42">
                 </div>
                 <div class="space-y-2">
-                  <label class="text-[10px] font-bold text-center block text-slate-500" for="potassium">Potassium</label>
-                  <input type="number" id="potassium" required
+                  <label class="text-[10px] font-bold text-center block text-slate-500" for="potassium_val">Potassium</label>
+                  <input type="number" id="potassium_val" required
                     class="input-field w-full px-4 py-4 rounded-2xl text-center text-white outline-none font-bold"
                     value="43">
                 </div>
@@ -404,22 +404,22 @@
             <!-- Last Row -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div class="space-y-2">
-                <label class="text-xs font-bold uppercase tracking-widest text-slate-400 ml-1" for="ph">pH Scale (0-14)</label>
+                <label class="text-xs font-bold uppercase tracking-widest text-slate-400 ml-1" for="ph_val">pH Scale (0-14)</label>
                 <div class="relative">
                   <i class="fas fa-vial absolute left-4 top-1/2 -translate-y-1/2 text-purple-500/50"></i>
-                  <input type="number" id="ph" step="0.1" required
-                    class="input-field w-full l-11 pr-4 py-4 rounded-2xl text-white outline-none" value="6.5">
+                  <input type="number" id="ph_val" step="0.1" required
+                    class="input-field w-full pl-11 pr-4 py-4 rounded-2xl text-white outline-none" value="6.5">
                 </div>
               </div>
               <div class="space-y-2">
-                <label class="text-xs font-bold uppercase tracking-widest text-slate-400 ml-1" for="humidity">Relative Humidity (%)</label>
+                <label class="text-xs font-bold uppercase tracking-widest text-slate-400 ml-1" for="humidity_val">Relative Humidity (%)</label>
                 <div class="relative">
                   <i class="fas fa-droplets absolute left-4 top-1/2 -translate-y-1/2 text-cyan-500/50"></i>
-                  <input type="number" id="humidity" step="0.1" required
+                  <input type="number" id="humidity_val" step="0.1" required
                     class="input-field w-full pl-11 pr-4 py-4 rounded-2xl text-white outline-none" value="82">
                 </div>
               </div>
-            </div>
+            </div>>
 
             <button type="submit"
               class="btn-primary w-full py-5 rounded-2xl text-white font-bold tracking-wide text-lg flex items-center justify-center gap-3 group">
