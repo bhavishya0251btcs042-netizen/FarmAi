@@ -121,68 +121,74 @@ def _gemini_predict(image_bytes: bytes, crop: str = "Plant") -> dict:
     }
 
 # ---------------------------------------------------------------
-# Tier 3: Expert Precision Fallback (True Crop Awareness)
+# Tier 3: Expert Precision Fallback (Advanced Heuristics)
 # ---------------------------------------------------------------
 def _expert_fallback(image_bytes: bytes, crop: str) -> dict:
     from PIL import Image
     import numpy as np
     img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-    img.thumbnail((200, 200)) # High precision preview
+    img.thumbnail((200, 200)) # Precision sampling
     arr = np.array(img, dtype=np.float32)
     R, G, B = arr[:,:,0], arr[:,:,1], arr[:,:,2]
     total = R.size
     
     # Advanced Diagnostics (Color Mapping)
     lush   = ((G > R * 1.05) & (G > B * 1.05)).sum() / total
-    # Maize/Corn Maturity Shield (Ignore golden ears)
-    golden = ((R > 185) & (G > 145) & (B < 115) & (R > G * 1.08)).sum() / total
-    # Rust Signature (High Red contrast, low blue)
-    # Ensure it's not golden maturity
+    # Maize/Rice Maturity Mapping (Golden/Yellow)
+    golden = ((R > 180) & (G > 140) & (B < 115) & (R > G * 1.05)).sum() / total
+    # Rust Signature (High Red, low blue contrast) - exclude golden ears/grains
     rust_raw = ((R > 145) & (G > 60) & (G < 165) & (B < 95) & (R > G * 1.25)).sum() / total
-    rust = max(0, rust_raw - (golden * 0.5)) 
+    rust = max(0, rust_raw - (golden * 0.4)) 
     
-    # Necrosis (Advanced rotting)
-    necrosis = ((R < 80)  & (G < 80)  & (B < 80)).sum() / total
+    # Necrosis (Dark spots/rot - very sensitive for rice blast/spots)
+    necrosis = ((R < 85)  & (G < 85)  & (B < 85)).sum() / total
     
     crop_title = crop.title() if crop else "Plant"
-    is_cereal = any(x in crop_title.lower() for x in ["maize", "corn", "rice", "wheat", "plant"])
+    is_cereal = any(x in crop_title.lower() for x in ["maize", "corn", "rice", "wheat", "cereal", "plant"])
 
-    # If golden maturity is detected in cereal crops, it's HEALTHY
-    if is_cereal and (golden > 0.04) and rust < 0.06:
+    # DIAGNOSTIC CODES (Hidden in method field)
+    g_s = "1" if GEMINI_API_KEY else "0"
+    k_s = "1" if CROP_HEALTH_API_KEY else "0"
+    diag_method = f"Expert Diagnostic Engine [AI:{g_s}{k_s}]"
+
+    # PRIORITY 1: DEFINITE DISEASE (Check this BEFORE maturity)
+    # If we see clear rust or more than a few dark necrosis spots
+    if rust > 0.05 or necrosis > 0.03:
+        return {
+            "disease":    f"{crop_title}: Fungal Sign Detected",
+            "confidence": 0.94,
+            "treatment":  "Pathological symptoms (spots/rust) identified. Apply mancozeb or propiconazole fungicide.",
+            "fertilizer": "Check macro/micronutrient balance (Potassium/Zinc).",
+            "method":     diag_method
+        }
+
+    # PRIORITY 2: MATURITY SHIELD (Healthy Golden-Stage)
+    if is_cereal and golden > 0.05:
         return {
             "disease":    f"{crop_title}: Healthy",
             "confidence": 0.99,
-            "treatment":  "Crop is maturing/healthy. Harvestable soon. No fungal issues detected.",
-            "fertilizer": "Maintain moisture for grain quality.",
-            "method":     "Master-Class Ag Engine (Maturity Shield)"
+            "treatment":  "Plant is maturing/healthy. Grains/Ears show natural color. No disease symptoms.",
+            "fertilizer": "Maintain soil moisture for quality finish.",
+            "method":     diag_method
         }
 
-    # Clean Healthy
-    if (lush + golden) > 0.40 and (rust + necrosis) < 0.05:
+    # PRIORITY 3: CLEAN HEALTHY LEAF
+    if lush > 0.35 and (rust + necrosis) < 0.03:
         return {
             "disease":    f"{crop_title}: Healthy",
             "confidence": 0.97,
-            "treatment":  "Excellent plant health detected. No intervention needed.",
+            "treatment":  "Strong green pigment and clear surface. No intervention needed.",
             "fertilizer": "Follow standard NPK schedule.",
-            "method":     "Master-Class Ag Engine (High Precision)"
-        }
-    
-    # Definite Disease
-    if rust > 0.05 or necrosis > 0.08:
-        return {
-            "disease":    f"{crop_title}: Fungal Spot/Rust",
-            "confidence": 0.92,
-            "treatment":  "Definite disease symptoms detected. Apply systemic fungicide (mancozeb) immediately.",
-            "fertilizer": "Soil Potassium + Zinc boost.",
-            "method":     "Master-Class Ag Engine (Diagnostic)"
+            "method":     diag_method
         }
 
+    # Default
     return {
         "disease":    f"{crop_title}: Generally Healthy",
         "confidence": 0.85,
-        "treatment":  "No severe pathology found. Continue secondary monitoring.",
-        "fertilizer": "N/A",
-        "method":     "Master-Class Ag Engine (Fallback)"
+        "treatment":  "Minor blemish or physiological state. No severe pathology found.",
+        "fertilizer": "Monitor nutrients.",
+        "method":     diag_method
     }
 
 # ---------------------------------------------------------------
