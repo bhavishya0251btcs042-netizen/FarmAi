@@ -655,11 +655,13 @@ If it IS related, analyze the image from an agricultural perspective. Identify:
 Be specific and practical."""
 
         try:
+            # Use stable v1 endpoint
+            url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={gemini_key}"
             resp = http_requests.post(
-                f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}",
+                url,
                 json={"contents": [{"parts": [{"text": prompt}, {"inline_data": {"mime_type": mime, "data": b64}}]}],
-                      "generationConfig": {"temperature": 0.2, "maxOutputTokens": 800}},
-                timeout=25
+                      "generationConfig": {"temperature": 0.1, "maxOutputTokens": 1000}},
+                timeout=30
             )
             if resp.status_code == 429:
                 return {"reply": "The analysis engine is currently busy (Rate Limit). Please wait a moment and try again."}
