@@ -33,83 +33,90 @@ EXPERT_KB = {
 }
 
 # ---------------------------------------------------------------
-# Tier 1: Kindwise Crop Health (Dedicated Precision)
+# Tier 1: Kindwise Crop Health (World-Class Precision)
 # ---------------------------------------------------------------
 def _kindwise_predict(image_bytes: bytes) -> dict:
-    if not CROP_HEALTH_API_KEY:
-        raise ValueError("Kindwise Key Missing")
+    if not CROP_HEALTH_API_KEY or len(CROP_HEALTH_API_KEY) < 10:
+        raise ValueError("Missing API Key")
     
+    # Kindwise expects a list of base64 strings
     b64 = base64.b64encode(image_bytes).decode("utf-8")
     payload = {
         "images": [f"data:image/jpeg;base64,{b64}"],
-        "latitude": 49.207, "longitude": 16.608, # Optional defaults
         "similar_images": True
     }
-    headers = {"Content-Type": "application/json", "Api-Key": CROP_HEALTH_API_KEY}
+    # Headers must be exact
+    headers = {
+        "Content-Type": "application/json", 
+        "Api-Key": CROP_HEALTH_API_KEY
+    }
     
-    resp = requests.post(KINDWISE_URL, json=payload, headers=headers, timeout=12)
-    resp.raise_for_status()
+    resp = requests.post(KINDWISE_URL, json=payload, headers=headers, timeout=25)
+    if resp.status_code != 200:
+        raise Exception(f"Kindwise Error {resp.status_code}: {resp.text}")
+        
     data = resp.json()
+    health = data.get("health", {})
+    is_healthy = health.get("is_healthy", True)
     
-    res = data["health"]
-    is_healthy = res.get("is_healthy", True)
-    
-    # Get top suggestion
-    suggestions = res.get("diseases", [])
-    if is_healthy or not suggestions:
+    if is_healthy:
         return {
-            "disease":    "Plant Status: Healthy",
-            "confidence": float(res.get("is_healthy_probability", 0.95)),
-            "treatment":  "Maintain current irrigation. No chemical treatment needed.",
-            "fertilizer": "Maintain balanced NPK schedule.",
-            "method":     "Kindwise Industrial Plant-AI (Verified Healthy)"
+            "disease":    "Plant Status: Healthy & Fine",
+            "confidence": float(health.get("is_healthy_probability", 0.98)),
+            "treatment":  "No disease detected. Maintain optimal irrigation and nutrition.",
+            "fertilizer": "Standard balanced NPK (15-15-15).",
+            "method":     "Kindwise Scientific AI (Tier-1)"
         }
     
-    top = suggestions[0]
-    return {
-        "disease":    top.get("name", "Unknown Issue"),
-        "confidence": float(top.get("probability", 0.85)),
-        "treatment":  "Apply recommended fungicide/pesticide. Quarantine infected crops.",
-        "fertilizer": "Check macro-nutrient balance.",
-        "method":     "Kindwise Industrial Plant-AI (Diagnostic)"
-    }
+    suggestions = health.get("diseases", [])
+    if suggestions:
+        top = suggestions[0]
+        return {
+            "disease":    top.get("name", "Fungal Issue Detected"),
+            "confidence": float(top.get("probability", 0.85)),
+            "treatment":  "Apply targeted fungicides. Prune affected areas.",
+            "fertilizer": "Check micro-nutrient levels.",
+            "method":     "Kindwise Scientific AI (Tier-1 Diagnostic)"
+        }
+    raise Exception("No diagnosis found")
 
 # ---------------------------------------------------------------
-# Tier 2: Google Gemini (Vision AI)
+# Tier 2: Google Gemini (High-Level Vision)
 # ---------------------------------------------------------------
 def _gemini_predict(image_bytes: bytes, crop: str = "Plant") -> dict:
-    if not GEMINI_API_KEY:
-        raise ValueError("Gemini Key Missing")
+    if not GEMINI_API_KEY or len(GEMINI_API_KEY) < 10:
+        raise ValueError("Missing API Key")
 
     img_b64 = base64.b64encode(image_bytes).decode("utf-8")
-    prompt = f"""Identify the crop ({crop}) and state exactly if it is healthy or diseased.
-If healthy, return status as Healthy. If diseased, specify the disease name.
-Return JSON ONLY: {{"is_leaf":true,"crop":"name","disease":"Status","confidence":0.9,"treatment":"steps","fertilizer":"NPK"}}"""
+    # Stronger prompt for better JSON consistency
+    prompt = f"Expert Diagnosis: Image of {crop}. If 100% fine, disease='Healthy'. If spots/rot, disease='[Name]'. Return JSON: {{\"disease\":\"...\",\"confidence\":0.9,\"treatment\":\"...\",\"fertilizer\":\"...\"}}"
 
     payload = {
         "contents": [{"parts": [{"text": prompt}, {"inline_data": {"mime_type": "image/jpeg", "data": img_b64}}]}],
         "generationConfig": {"temperature": 0.0, "maxOutputTokens": 300}
     }
     
-    resp = requests.post(f"{GEMINI_URL}?key={GEMINI_API_KEY}", json=payload, timeout=15)
+    resp = requests.post(f"{GEMINI_URL}?key={GEMINI_API_KEY}", json=payload, timeout=25)
     resp.raise_for_status()
-    res_data = resp.json()
-    text = res_data["candidates"][0]["content"]["parts"][0]["text"].strip()
+    raw_text = resp.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
     
-    if "```" in text: text = text.split("```")[1].strip(); 
-    if text.startswith("json"): text = text[4:].strip()
+    # Bulletproof JSON Extraction
+    json_text = raw_text
+    if "```" in raw_text:
+        json_text = raw_text.split("```")[1].strip()
+        if json_text.startswith("json"): json_text = json_text[4:].strip()
     
-    result = json.loads(text)
+    res = json.loads(json_text)
     return {
-        "disease":    result.get("disease", "Status: Healthy"),
-        "confidence": float(result.get("confidence", 0.9)),
-        "treatment":  result.get("treatment", "Standard Care."),
-        "fertilizer": result.get("fertilizer", "Balanced NPK."),
-        "method":     "Google Gemini Vision Engine"
+        "disease":    res.get("disease", "Healthy"),
+        "confidence": float(res.get("confidence", 0.90)),
+        "treatment":  res.get("treatment", "Balanced Care."),
+        "fertilizer": res.get("fertilizer", "NPK 15-15-15"),
+        "method":     "Google Gemini AI Vision (Tier-2)"
     }
 
 # ---------------------------------------------------------------
-# Tier 3: Expert Fallback (Safe Logic)
+# Tier 3: Expert Precision Fallback (Last Resort)
 # ---------------------------------------------------------------
 def _expert_fallback(image_bytes: bytes, crop: str) -> dict:
     from PIL import Image
@@ -118,26 +125,45 @@ def _expert_fallback(image_bytes: bytes, crop: str) -> dict:
     img.thumbnail((150, 150))
     arr = np.array(img, dtype=np.float32)
     R, G, B = arr[:,:,0], arr[:,:,1], arr[:,:,2]
+    total = R.size
     
-    green = ((G > R * 1.0) & (G > B * 1.0)).sum() / R.size
-    spots = ((R > 130) & (G < 150)).sum() / R.size # Simplified rust check
+    # Advanced Pixel Check
+    # Lush Green (Healthy)
+    lush = ((G > R * 1.05) & (G > B * 1.05)).sum() / total
+    # Rust/Orange Dots (Diseased)
+    rust = ((R > 140) & (G > 60) & (G < 170) & (B < 100) & (R > G * 1.2)).sum() / total
+    # Necrotic Spots (Diseased)
+    necrosis = ((R < 70) & (G < 70) & (B < 70)).sum() / total
     
     crop_title = crop.title() if crop else "Plant"
     
-    if green > 0.45 and spots < 0.08:
+    # If the image is dominated by lush green and has almost zero anomaly
+    if lush > 0.40 and (rust + necrosis) < 0.04:
         return {
             "disease":    f"{crop_title}: Healthy",
             "confidence": 0.95,
-            "treatment":  "Plant appears healthy.",
-            "fertilizer": "Maintain regular feeding.",
-            "method":     "Internal Color Intelligence"
+            "treatment":  "Plant is looking great! No treatment needed.",
+            "fertilizer": "Maintain regular fertilization.",
+            "method":     "Precision Color Fallback (T3-Healthy)"
         }
+    
+    # If we see CLEAR rust or spots
+    if rust > 0.05 or necrosis > 0.06:
+        return {
+            "disease":    f"{crop_title}: Fungal Spot Detected",
+            "confidence": 0.82,
+            "treatment":  "Visible symptoms found. Apply mancozeb fungicide immediately.",
+            "fertilizer": "Soil micro-nutrient boost recommended.",
+            "method":     "Precision Anomaly Fallback (T3-Diagnostic)"
+        }
+
+    # Generic Fallback
     return {
-        "disease":    f"{crop_title}: Potential Fungal Sign",
-        "confidence": 0.65,
-        "treatment":  "Apply organic neem oil. Observe for 48h.",
+        "disease":    f"{crop_title}: Unknown / Healthy",
+        "confidence": 0.70,
+        "treatment":  "No clear disease pattern. Observe for 24h.",
         "fertilizer": "N/A",
-        "method":     "Safety Fallback Algorithm"
+        "method":     "Heuristic Fallback (T3)"
     }
 
 # ---------------------------------------------------------------
