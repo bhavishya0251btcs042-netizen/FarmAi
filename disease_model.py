@@ -6,6 +6,8 @@ from PIL import Image
 import numpy as np
 from dotenv import load_dotenv
 
+SERVER_VERSION = "v6.0-Grok-Authority-Confirmed"
+
 load_dotenv()
 
 # API URLs for orchestration
@@ -211,7 +213,11 @@ def _gemini_predict(api_key: str, image_bytes: bytes, crop: str) -> dict:
         ]}],
         "generationConfig": {"temperature": 0.1, "maxOutputTokens": 800}
     }
+    # Try V1 first, then fallback to V1BETA locally
     r = requests.post(f"{GEMINI_URL}?key={api_key}", json=b, timeout=25)
+    if r.status_code == 404:
+        r = requests.post(f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}", json=b, timeout=25)
+    
     if r.status_code == 429:
         raise Exception("G-429")
     if r.status_code != 200:
@@ -363,7 +369,7 @@ def _kindwise_predict(api_key: str, image_bytes: bytes) -> dict:
         "safety": db.get("safety", "Wear gloves and mask."),
         "cost_estimate": db.get("cost_estimate", "Estimate: ₹10-20/spray."),
         "reason": reason,
-        "method": "Kindwise Plant Health AI"
+        "method": "Emergency Fallback (Non-Expert)"
     }
 
 # ---------------------------------------------------------------------------
@@ -475,12 +481,12 @@ def predict_disease_from_image(image_bytes: bytes, crop: str = None, lat: float 
         if not best:
             best = max(results, key=lambda x: x.get("confidence", 0))
 
-        # 🚀 MANDATORY PRIORITY CONFIRMATION
-        best["disease"] = f"[v5.8 Groq-Priority] {best.get('disease','')}"
+        # 🚀 FINAL AUTHORITY BRANDING (Mandatory Proof)
+        best["disease"] = f"[{SERVER_VERSION}] {best.get('disease','')}"
         
         # Build Status Header
         groq_status = next((f"[ACTIVE] {r.get('reason','')[:40]}.." for r in results if "Groq" in r.get("method","")), "BYPASSED / FAILED")
-        best["reason"] = f"### GROQ STATUS: {groq_status}\n\n{best.get('reason','')}"
+        best["reason"] = f"### AUTH-CHECK: {SERVER_VERSION}\n### GROK STATUS: {groq_status}\n\n{best.get('reason','')}"
         
         if errs:
             best["reason"] = f"{best.get('reason','')}\n\n[Full Cluster Errors: {', '.join(errs)}]"
