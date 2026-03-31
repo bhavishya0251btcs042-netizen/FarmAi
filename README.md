@@ -87,8 +87,8 @@ Secure register, login, profile management, and password change with bcrypt encr
 </td>
 <td width="50%">
 
-### 📍 Smart Geolocation
-Automatically detects your region to provide "Verified for [Location]" cost estimates for fertilizers and pesticides, ensuring regional accuracy.
+### 💰 Economic Advisor
+Provides data-driven estimates for **Expected Yield** and **Estimated Profit** per acre for each recommended crop, based on current Indian market averages.
 
 </td>
 </tr>

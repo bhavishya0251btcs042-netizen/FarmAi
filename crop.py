@@ -109,6 +109,34 @@ def load_model():
 model, feature_names, model_accuracy = load_model()
 
 # ----------------------------------------
+# CROP ECONOMICS DATA (India-specific averages per acre)
+# ----------------------------------------
+CROP_ECONOMICS = {
+    "rice": {"yield": "2.5-3.5 tons", "profit": "₹35,000-₹50,000"},
+    "maize": {"yield": "3.5-4.5 tons", "profit": "₹45,000-₹65,000"},
+    "wheat": {"yield": "2.0-2.8 tons", "profit": "₹30,000-₹45,000"},
+    "cotton": {"yield": "0.8-1.5 tons", "profit": "₹40,000-₹60,000"},
+    "sugarcane": {"yield": "35-50 tons", "profit": "₹60,000-₹90,000"},
+    "pomegranate": {"yield": "5-8 tons", "profit": "₹1,20,000-₹2,50,000"},
+    "banana": {"yield": "15-25 tons", "profit": "₹1,00,000-₹2,00,000"},
+    "mango": {"yield": "3-6 tons", "profit": "₹80,000-₹1,50,000"},
+    "grapes": {"yield": "10-15 tons", "profit": "₹2,00,000-₹4,00,000"},
+    "apple": {"yield": "6-10 tons", "profit": "₹1,50,000-₹3,00,000"},
+    "orange": {"yield": "8-12 tons", "profit": "₹90,000-₹1,80,000"},
+    "papaya": {"yield": "20-30 tons", "profit": "₹1,50,000-₹3,00,000"},
+    "coconut": {"yield": "4,000-7,000 nuts", "profit": "₹80,000-₹1,40,000"},
+    "coffee": {"yield": "0.5-1.2 tons", "profit": "₹70,000-₹1,30,000"},
+    "tea": {"yield": "0.8-1.5 tons", "profit": "₹60,000-₹1,10,000"},
+    "potato": {"yield": "12-18 tons", "profit": "₹70,000-₹1,20,000"},
+    "onion": {"yield": "10-15 tons", "profit": "₹60,000-₹1,30,000"},
+    "tomato": {"yield": "15-25 tons", "profit": "₹80,000-₹2,00,000"},
+    "jute": {"yield": "1.0-1.5 tons", "profit": "₹25,000-₹40,000"},
+    "chickpea": {"yield": "0.6-1.0 tons", "profit": "₹20,000-₹35,000"},
+    "lentil": {"yield": "0.4-0.8 tons", "profit": "₹18,000-₹30,000"},
+    "default": {"yield": "Varied (approx 2-5 tons)", "profit": "₹30,000-₹60,000"}
+}
+
+# ----------------------------------------
 # APP
 # ----------------------------------------
 app = FastAPI()
@@ -407,7 +435,13 @@ def predict(req: PredictRequest, current_user: str = Depends(get_current_user)):
                 "feature_contributions": explanation
             }
         },
-        "suggestions": [{"crop": classes[i], "probability": float(probs[i])} for i in idx]
+        "suggestions": [
+            {
+                "crop": classes[i], 
+                "probability": float(probs[i]),
+                "economics": CROP_ECONOMICS.get(classes[i].lower(), CROP_ECONOMICS["default"])
+            } for i in idx
+        ]
     }
 
 

@@ -237,14 +237,12 @@
 
                         <div class="grid grid-cols-2 gap-4">
                             <div class="p-4 rounded-3xl bg-white/5 border border-white/5 backdrop-blur-sm">
-                                <p class="text-[10px] uppercase font-black text-slate-500 mb-1 tracking-widest">Growth
-                                    Index</p>
-                                <p class="text-xs font-bold text-white">Highly Favorable</p>
+                                <p class="text-[10px] uppercase font-black text-slate-500 mb-1 tracking-widest">Expected Yield</p>
+                                <p id="expectedYield" class="text-xs font-bold text-white"><i class="fas fa-chart-line text-brand-500 mr-2"></i> --</p>
                             </div>
                             <div class="p-4 rounded-3xl bg-white/5 border border-white/5 backdrop-blur-sm">
-                                <p class="text-[10px] uppercase font-black text-slate-500 mb-1 tracking-widest">Resource
-                                    Demand</p>
-                                <p class="text-xs font-bold text-white">Moderate</p>
+                                <p class="text-[10px] uppercase font-black text-slate-500 mb-1 tracking-widest">Estimated Profit</p>
+                                <p id="estimatedProfit" class="text-xs font-bold text-white"><i class="fas fa-sack-dollar text-brand-500 mr-2"></i> --</p>
                             </div>
                         </div>
                     </div>
@@ -351,6 +349,11 @@
                 document.getElementById("bestCropImage").src = cropImgSrc;
                 document.getElementById("bestCropIcon").src = cropImgSrc;
                 document.getElementById("confidenceVal").textContent = (best.probability * 100).toFixed(1);
+                
+                if (best.economics) {
+                    document.getElementById("expectedYield").innerHTML = `<i class="fas fa-chart-line text-brand-500 mr-2"></i> ~${best.economics.yield}/acre`;
+                    document.getElementById("estimatedProfit").innerHTML = `<i class="fas fa-sack-dollar text-brand-500 mr-2"></i> ${best.economics.profit}/acre`;
+                }
             };
 
             const saveToHistory = async (best, inputs) => {
