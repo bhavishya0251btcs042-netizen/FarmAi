@@ -461,7 +461,7 @@ def predict_disease_from_image(image_bytes: bytes, crop: str = None, lat: float 
 
     for tr in tier_results:
         if tr["res"]: results.append(tr["res"])
-        else: errs.append(f"{tr['name']}:{tr['err'][:8]}")
+        else: errs.append(f"{tr['name']}:{tr['err'][:30]}")
 
     if results:
         # Pick the most confident result among the APIs
