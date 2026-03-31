@@ -183,20 +183,19 @@ def _gemini_predict(image_bytes: bytes, crop: str) -> dict:
         raise ValueError("G-Missing")
 
     expert_prompt = f"""You are a world-class Plant Pathologist AI.
-    Analyze the provided image of a {crop if crop else 'crop'} and provide a precise diagnosis.
+    Analyze the provided image of a {crop if crop else 'crop'} and provide a highly accurate diagnosis.
     
     STRICT DIAGNOSTIC CONSTRAINTS:
-    - CATEGORIZATION: If vibrant green, well-formed, and no lesions -> "Healthy".
-    - PART AWARENESS: Distinguish between Leaf, Head/Ear, Stem, and Fruit. 
-    - YELLOW RUST WARNING: Naturally ripening/maturing grain heads (turning yellow/golden) are NOT Yellow Rust. Yellow Rust presents as distinct yellow pustule stripes on leaves or chaff. Do not confuse maturity with rust.
-    - SMUT DETECTION: Black powdery heads in wheat/grain = "Loose Smut".
+    - CATEGORIZATION: If vibrant green/lush with NO spots -> "Healthy".
+    - RUST DETECTION: Cedar-Apple Rust or Pear Rust often show large, vibrant ORANGE/YELLOW spots with black centers on leaves. These are NOT ripening; they are active fungal infections. Report as "Rust".
+    - YELLOW RUST (Grains): Distinct yellow pustule STRIPES on leaves/heads.
+    - SMUT DETECTION: Black powdery grain heads = "Loose Smut".
     
     Requirements:
-    1. Identify EXACT Scientific + Common Name.
+    1. EXACT Scientific + Common Name.
     2. Morphological Analysis: Lesion shape, colors, and specific distribution.
     3. Infection Stage: Early/Medium/Late.
-    4. Precise Treatment: Chemicals (e.g. Propiconazole) + Dosage (e.g. 2ml/L).
-    5. Spray Safety & Economic Estimate in INR (₹).
+    4. Precise Treatment: Chemicals + Dosage (e.g. 2g/L).
 
     Return ONLY a JSON object:
     {{
@@ -207,7 +206,7 @@ def _gemini_predict(image_bytes: bytes, crop: str) -> dict:
       "treatment": "Detailed protocol",
       "safety": "Safety protocol",
       "cost_estimate": "₹... per acre",
-      "reason": "Evidence-based morphological reasoning"
+      "reason": "Evidence-based reasoning"
     }}
     """
 
@@ -266,9 +265,9 @@ def _groq_predict(image_bytes: bytes, crop: str) -> dict:
 
     STRICT RULES:
     1. If the crop is green and lush with no visible lesions/spots -> disease = "Healthy".
-    2. Do NOT guess a leaf disease (like Rust) if the image only shows the Grain Head/Ear unless symptoms are obvious on the head itself.
-    3. Name the SPECIFIC disease (e.g. "Wheat Loose Smut", "Rice Blast") — not just symptoms.
-    4. Treatment MUST include chemical names (e.g. Propiconazole 25EC), exact doses (e.g. 2ml/L), and spray timing.
+    2. Aggressively detect fungal spots (e.g., Cedar-Apple Rust, Pear Rust, Leaf Spot).
+    3. Name the SPECIFIC disease — not just symptoms.
+    4. Treatment MUST include chemical names, exact doses, and spray timing.
     5. Fertilizer: exact product + dose.
     
     Return ONLY raw JSON (no markdown):
@@ -317,7 +316,7 @@ def _groq_predict(image_bytes: bytes, crop: str) -> dict:
         "safety": res.get("safety") or db.get("safety", "Standard PPE required."),
         "cost_estimate": res.get("cost_estimate") or db.get("cost_estimate", "Varies by region."),
         "reason": reason,
-        "method": "Groq Llama 4 Expert"
+        "method": "Groq Llama 3.2 Vision"
     }
 
 # ---------------------------------------------------------------------------
@@ -386,43 +385,28 @@ def _expert_fallback(image_bytes: bytes, crop: str, errors: list = None) -> dict
     yellow_pct = ((R > 180) & (G > 160) & (B < 80)).sum() / total    # chlorosis
     dark_pct   = ((R < 80) & (G < 80) & (B < 80)).sum() / total       # necrosis
 
-    # -----------------------------------------------------------------------
-    # LOGIC IMPROVEMENTS: Focus on "Healthy" bias and pattern recognition
-    # -----------------------------------------------------------------------
-    is_maize = crop and crop.lower() in ["maize", "corn"]
-    
-    # 1. Healthy Ripening/Maturity (Golden hue)
-    if gold_pct > 0.15 and rust_pct < 0.12:
-        return {"disease": "Healthy — Ripening Stage", "confidence": 0.95, "severity": "Healthy",
-                "treatment": "Crop is maturing naturally. No chemical treatment required.",
-                "fertilizer": "No additional fertilizer needed at ripening stage.",
-                "reason": f"Maturity detection: {gold_pct*100:.1f}% golden/yellow hue. Typical of ripening heads/ears.",
+    # 1. Healthy Ripening/Maturity (Golden hue) - Balanced
+    if gold_pct > 0.18 and rust_pct < 0.05:
+        return {"disease": "Healthy — Ripening/Mature", "confidence": 0.95, "severity": "Healthy",
+                "treatment": "No treatment required. Crop is at maturity stage.",
+                "reason": f"Maturity detection: {gold_pct*100:.1f}% golden/yellow hue with low infection signature.",
                 "method": "Neural Fallback"}
 
-    # 2. Strong Green Baseline (Healthy)
-    if green_pct > 0.45 and rust_pct < 0.10:
+    # 2. Actual Rust/Fungal Detection (High Potency Restored)
+    if rust_pct > 0.02 or dark_pct > 0.03:
+        db = DISEASE_DB["rust"] if rust_pct > 0.02 else DISEASE_DB["spot"]
+        sev = "High" if (rust_pct + dark_pct) > 0.12 else "Medium"
+        return {"disease": "Foliar Rust / Fungal Lesions", "confidence": 0.85, "severity": sev,
+                "treatment": db["treatment"], "fertilizer": db["fertilizer"],
+                "reason": f"Detected {rust_pct*100:.1f}% active fungal signature (spots/lesions) and {dark_pct*100:.1f}% necrotic tissue. {err_tag}",
+                "method": "Neural Fallback"}
+
+    # 3. Strong Green Baseline (Healthy)
+    if green_pct > 0.40:
         db = DISEASE_DB["healthy"]
-        return {"disease": "Healthy", "confidence": 0.92, "severity": "Healthy",
+        return {"disease": "Healthy", "confidence": 0.88, "severity": "Healthy",
                 "treatment": db["treatment"], "fertilizer": db["fertilizer"],
-                "safety": db.get("safety"), "cost_estimate": db.get("cost_estimate"),
-                "reason": f"High vegetative health: {green_pct*100:.1f}% green coverage. No significant lesion patterns.",
-                "method": "Neural Fallback"}
-
-    # 3. Maize Specialized Blight
-    if is_maize and yellow_pct > 0.12:
-        db = DISEASE_DB["blight"]
-        return {"disease": "Maize Leaf Blight Symptoms", "confidence": 0.84, "severity": "Medium",
-                "treatment": db["treatment"], "fertilizer": db["fertilizer"],
-                "reason": f"Maize Blight Analysis: {yellow_pct*100:.1f}% longitudinal chlorotic streaks detected.",
-                "method": "Neural Fallback"}
-
-    # 4. Actual Rust/Fungal Detection (Higher Thresholds)
-    if rust_pct > 0.08 and (dark_pct > 0.05 or yellow_pct > 0.15):
-        db = DISEASE_DB["rust"]
-        sev = "High" if (rust_pct + dark_pct) > 0.20 else "Medium"
-        return {"disease": "Foliar Rust / Fungal Infection", "confidence": 0.81, "severity": sev,
-                "treatment": db["treatment"], "fertilizer": db["fertilizer"],
-                "reason": f"Detected {rust_pct*100:.1f}% active fungal signature with {dark_pct*100:.1f}% necrotic tissue.",
+                "reason": f"High vegetative health: {green_pct*100:.1f}% green coverage. No significant pathogen patterns found. {err_tag}",
                 "method": "Neural Fallback"}
 
     db = DISEASE_DB["default"]
@@ -431,8 +415,6 @@ def _expert_fallback(image_bytes: bytes, crop: str, errors: list = None) -> dict
             "reason": "Image analysis returned mostly healthy or natural ripening signals.",
             "method": "Neural Fallback"}
 
-# ---------------------------------------------------------------------------
-# MAIN ORCHESTRATORS
 # ---------------------------------------------------------------------------
 
 def predict_disease_from_image(image_bytes: bytes, crop: str = None, lat: float = None, lng: float = None) -> dict:
