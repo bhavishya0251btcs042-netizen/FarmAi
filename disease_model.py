@@ -64,19 +64,23 @@ def _expert_fallback(image_bytes: bytes, crop: str, errors: list = None) -> dict
 def _groq_predict(image_bytes: bytes, crop: str) -> dict:
     if not GROQ_KEY: raise ValueError("X-Missing")
     b64 = base64.b64encode(image_bytes).decode("utf-8")
-    payload = { "model": GROQ_MODEL, "messages": [{ "role": "user", "content": [ { "type": "text", "text": "JSON ONLY: {\"disease\":\"...\",\"confidence\":0.9,\"treatment\":\"...\"}" }, { "type": "image_url", "image_url": { "url": f"data:image/jpeg;base64,{b64}" } } ] }] }
+    expert_prompt = f"Act as a PhD Plant Pathologist. Analyze this image of {crop or 'a plant'}. 1. If it's a healthy crop or just mature (e.g. golden corn), identify it as 'Healthy'. 2. If diseased, identify the specific pathology. 3. Provide a professional treatment plan including specific fungicides/pesticides if applicable. 4. Suggest a fertilizer boost. Return ONLY JSON: {{\"disease\": \"State: [Diagnosis]\", \"confidence\": 0.98, \"treatment\": \"...\", \"fertilizer\": \"...\"}}"
+    payload = { "model": GROQ_MODEL, "messages": [{ "role": "user", "content": [ { "type": "text", "text": expert_prompt }, { "type": "image_url", "image_url": { "url": f"data:image/jpeg;base64,{b64}" } } ] }] }
     r = requests.post(GROQ_URL, json=payload, headers={"Authorization": f"Bearer {GROQ_KEY}"}, timeout=25)
     if r.status_code != 200: raise Exception(f"X-{r.status_code}")
-    txt = r.json()["choices"][0]["message"]["content"]; res = json.loads(txt.split("```")[1].replace("json","") if "```" in txt else txt)
-    return {"disease": res["disease"], "confidence": 0.9, "treatment": res["treatment"], "method": "Groq Vision"}
+    txt = r.json()["choices"][0]["message"]["content"]
+    res = json.loads(txt.split("```")[1].replace("json","") if "```" in txt else txt)
+    return {"disease": res["disease"], "confidence": res.get("confidence", 0.9), "treatment": res["treatment"], "fertilizer": res.get("fertilizer", "N/A"), "method": "Groq Expert Vision"}
 
 def _gemini_predict(image_bytes: bytes, crop: str) -> dict:
     if not GEMINI_KEY: raise ValueError("G-Missing")
-    b = {"contents": [{"parts": [{"text": "JSON: {\"disease\":\"...\",\"confidence\":0.9,\"treatment\":\"...\"}"}, {"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(image_bytes).decode('utf-8')}}]}]}
+    expert_prompt = f"Agricultural AI Engine: Perform high-precision diagnostic on this {crop or 'leaf'}. Differentiate between maturity/coloration and actual disease. If healthy, report 'Healthy'. If diseased, list the specific name and a detailed bio-chemical treatment plan. JSON format: {{\"disease\":\"...\",\"confidence\":0.95,\"treatment\":\"...\",\"fertilizer\":\"...\"}}"
+    b = {"contents": [{"parts": [{"text": expert_prompt}, {"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(image_bytes).decode('utf-8')}}]}]}
     r = requests.post(f"{GEMINI_URL}?key={GEMINI_KEY}", json=b, timeout=20)
     if r.status_code != 200: raise Exception(f"G-{r.status_code}")
-    txt = r.json()["candidates"][0]["content"]["parts"][0]["text"]; res = json.loads(txt.split("```")[1].replace("json","") if "```" in txt else txt)
-    return {"disease": res["disease"], "confidence": 0.9, "treatment": res["treatment"], "method": "Gemini AI"}
+    txt = r.json()["candidates"][0]["content"]["parts"][0]["text"]
+    res = json.loads(txt.split("```")[1].replace("json","") if "```" in txt else txt)
+    return {"disease": res["disease"], "confidence": res.get("confidence", 0.9), "treatment": res["treatment"], "fertilizer": res.get("fertilizer", "N/A"), "method": "Gemini AI Expert"}
 
 def predict_disease_from_image(image_bytes: bytes, crop: str = None) -> dict:
     c = crop or "Plant"
