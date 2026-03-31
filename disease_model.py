@@ -8,10 +8,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-GEMINI_KEY   = os.getenv("GEMINI_API_KEY", "").strip()
-KINDWISE_KEY = os.getenv("CROP_HEALTH_API_KEY", "").strip()
-GROQ_KEY     = os.getenv("GROK_API_KEY", "").strip()
-
+# API URLs for orchestration
 GEMINI_URL   = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
 GROQ_URL     = "https://api.groq.com/openai/v1/chat/completions"
 GROQ_MODEL   = "llama-3.2-11b-vision-preview"
@@ -178,8 +175,8 @@ def _preprocess_image(image_bytes: bytes, max_size: int = 800) -> bytes:
 # ---------------------------------------------------------------------------
 # TIER 1: GEMINI (Primary — Best Accuracy)
 # ---------------------------------------------------------------------------
-def _gemini_predict(image_bytes: bytes, crop: str) -> dict:
-    if not GEMINI_KEY:
+def _gemini_predict(api_key: str, image_bytes: bytes, crop: str) -> dict:
+    if not api_key:
         raise ValueError("G-Missing")
 
     expert_prompt = f"""You are a world-class Plant Pathologist AI.
@@ -217,7 +214,7 @@ def _gemini_predict(image_bytes: bytes, crop: str) -> dict:
         ]}],
         "generationConfig": {"temperature": 0.1, "maxOutputTokens": 800}
     }
-    r = requests.post(f"{GEMINI_URL}?key={GEMINI_KEY}", json=b, timeout=25)
+    r = requests.post(f"{GEMINI_URL}?key={api_key}", json=b, timeout=25)
     if r.status_code == 429:
         raise Exception("G-429")
     if r.status_code != 200:
@@ -257,8 +254,8 @@ def _gemini_predict(image_bytes: bytes, crop: str) -> dict:
 # ---------------------------------------------------------------------------
 # TIER 2: GROQ LLAMA VISION (Secondary fallback)
 # ---------------------------------------------------------------------------
-def _groq_predict(image_bytes: bytes, crop: str) -> dict:
-    if not GROQ_KEY:
+def _groq_predict(api_key: str, image_bytes: bytes, crop: str) -> dict:
+    if not api_key:
         raise ValueError("X-Missing")
 
     expert_prompt = f"""You are an expert plant pathologist AI. Diagnose this image of {crop or 'a plant'}.
@@ -285,7 +282,7 @@ def _groq_predict(image_bytes: bytes, crop: str) -> dict:
         "temperature": 0.1,
         "max_tokens": 500
     }
-    r = requests.post(GROQ_URL, json=payload, headers={"Authorization": f"Bearer {GROQ_KEY}"}, timeout=30)
+    r = requests.post(GROQ_URL, json=payload, headers={"Authorization": f"Bearer {api_key}"}, timeout=30)
     if r.status_code != 200:
         raise Exception(f"X-{r.status_code}")
 
@@ -322,12 +319,12 @@ def _groq_predict(image_bytes: bytes, crop: str) -> dict:
 # ---------------------------------------------------------------------------
 # TIER 3: KINDWISE (Specialized Plant Health API)
 # ---------------------------------------------------------------------------
-def _kindwise_predict(image_bytes: bytes) -> dict:
-    if not KINDWISE_KEY:
+def _kindwise_predict(api_key: str, image_bytes: bytes) -> dict:
+    if not api_key:
         raise ValueError("K-Missing")
 
     b64 = base64.b64encode(image_bytes).decode("utf-8")
-    headers = {"Api-Key": KINDWISE_KEY, "Content-Type": "application/json"}
+    headers = {"Api-Key": api_key, "Content-Type": "application/json"}
     payload = {"images": [f"data:image/jpeg;base64,{b64}"], "details": "local_name,description,treatment"}
 
     r = requests.post(KINDWISE_URL, json=payload, headers=headers, timeout=15)
@@ -444,16 +441,21 @@ def predict_disease_from_image(image_bytes: bytes, crop: str = None, lat: float 
     results = []
     errs = []
     
+    # Refresh keys from environment to ensure latest .env values
+    GK = os.getenv("GEMINI_API_KEY", "").strip()
+    XK = os.getenv("GROK_API_KEY", "").strip()
+    KK = os.getenv("CROP_HEALTH_API_KEY", "").strip()
+
     def run_tier(name, func, key, *args):
         if not key: return {"name": name, "res": None, "err": "Key Missing"}
-        try: return {"name": name, "res": func(*args), "err": None}
+        try: return {"name": name, "res": func(key, *args), "err": None}
         except Exception as e: return {"name": name, "res": None, "err": str(e)}
 
     with ThreadPoolExecutor(max_workers=3) as executor:
         futures = [
-            executor.submit(run_tier, "Gemini", _gemini_predict, GEMINI_KEY, image_bytes, c),
-            executor.submit(run_tier, "Groq", _groq_predict, GROQ_KEY, image_bytes, c),
-            executor.submit(run_tier, "Kindwise", _kindwise_predict, KINDWISE_KEY, image_bytes)
+            executor.submit(run_tier, "Gemini", _gemini_predict, GK, image_bytes, c),
+            executor.submit(run_tier, "Groq", _groq_predict, XK, image_bytes, c),
+            executor.submit(run_tier, "Kindwise", _kindwise_predict, KK, image_bytes)
         ]
         tier_results = [f.result() for f in futures]
 
@@ -469,8 +471,11 @@ def predict_disease_from_image(image_bytes: bytes, crop: str = None, lat: float 
             best["reason"] = f"Low-confidence consensus. {best.get('reason','')}"
         return enrich(best)
 
-    # All APIs failed -> Use Fallback
-    return enrich(_expert_fallback(image_bytes, c, errs))
+    # All APIs failed -> Use Fallback and report errors
+    fb = _expert_fallback(image_bytes, c, errs)
+    if errs:
+        fb["method"] = f"Neural Fallback [System Status: {', '.join(errs)}]"
+    return enrich(fb)
 
 
 def predict_disease_multiple(image_list: list, crop: str = None, lat: float = None, lng: float = None) -> dict:
