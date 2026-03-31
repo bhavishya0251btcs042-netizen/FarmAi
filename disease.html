@@ -219,17 +219,45 @@
             }
         }
 
-        async function initCamera() {
+        function initCamera() {
             try {
                 navigator.geolocation.getCurrentPosition(
                     (pos) => { userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude }; },
                     (err) => { console.warn("Location denied."); }
                 );
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-                video.srcObject = stream;
+                navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+                    .then(stream => video.srcObject = stream)
+                    .catch(e => console.error("Camera fail:", e));
             } catch (err) { console.error("Camera error:", err); }
         }
         initCamera();
+
+        // --- Drag and Drop Management ---
+        const dropZone = document.getElementById('uploadMode');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => {
+            dropZone.addEventListener(evt, e => {
+                e.preventDefault();
+                e.stopPropagation();
+            }, false);
+        });
+
+        ['dragenter', 'dragover'].forEach(evt => {
+            dropZone.addEventListener(evt, () => {
+                dropZone.classList.add('border-brand-500', 'bg-brand-500/10', 'scale-[1.02]');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(evt => {
+            dropZone.addEventListener(evt, () => {
+                dropZone.classList.remove('border-brand-500', 'bg-brand-500/10', 'scale-[1.02]');
+            });
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            const files = e.dataTransfer.files;
+            if(files.length) handleFiles(files);
+        });
 
         function takeSnapshot() {
             const canvas = document.getElementById('photoCanvas');
