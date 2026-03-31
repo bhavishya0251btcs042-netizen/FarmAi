@@ -93,7 +93,9 @@ DISEASE_DB = {
     },
     "bordeaux": {
         "treatment": "Bordeaux Mixture 1% preparation: Dissolve 10g of Copper Sulfate (CuSO₄) in 500ml water. Separately dissolve 10g of hydrated lime in another 500ml of water. Slowly pour the CuSO₄ solution into the lime solution (never the reverse). Test with litmus — should be neutral or slightly alkaline. Apply 1-2 litres per tree, spray every 7-10 days.",
-        "fertilizer": "No additional fertilizer needed if used as preventive treatment."
+        "fertilizer": "No additional fertilizer needed if used as preventive treatment.",
+        "safety": "Bordeaux Mixture is corrosive. Wear rubber gloves and eye protection. Do not use iron/galvanized containers for mixing. Spray early morning or evening.",
+        "cost_estimate": "Copper Sulfate (1kg) ≈ ₹200, Lime ≈ ₹20. Per 100L mixture ≈ ₹220. Very economical for large orchards."
     },
     "scab": {
         "treatment": "Step 1: Start spraying EARLY in the growing season, even before symptoms appear (weather-driven disease — spreads in wet/humid conditions). Step 2: Spray Mancozeb 75WP at 2g per litre (40g per 20L tank) every 7-10 days for 3-4 cycles. Step 3: Alternative fungicides — Carbendazim 50WP at 1g/L OR Chlorothalonil 75WP at 2g/L (rotate to prevent resistance). Step 4: Remove and burn all infected leaves and fallen fruit. Step 5: Avoid overhead irrigation to keep leaves dry. Step 6: Prune to improve air circulation inside the canopy.",
@@ -199,7 +201,7 @@ CRITICAL RULES - follow ALL strictly:
 6. In 'reason': use the correct scientific name of the pathogen (e.g. Venturia pyrina).
 
 Respond ONLY with this exact JSON (no markdown, no extra text):
-{{"disease": "...", "confidence": 0.95, "treatment": "...", "fertilizer": "..."}}"""
+{{"disease": "...", "confidence": 0.95, "treatment": "...", "fertilizer": "...", "safety": "...", "cost_estimate": "...", "reason": "..."}}"""
 
     b = {
         "contents": [{"parts": [
@@ -238,6 +240,8 @@ Respond ONLY with this exact JSON (no markdown, no extra text):
         "confidence": float(res.get("confidence", 0.93)),
         "treatment": treatment,
         "fertilizer": res.get("fertilizer") or db["fertilizer"],
+        "safety": res.get("safety") or db.get("safety", "Wear gloves and avoid sunlight/wind."),
+        "cost_estimate": res.get("cost_estimate") or db.get("cost_estimate", "Consult local rates."),
         "reason": reason,
         "method": "Gemini 1.5 Flash Expert"
     }
@@ -307,6 +311,8 @@ Return ONLY raw JSON (no markdown, no ```):
         "confidence": float(res.get("confidence", 0.88)),
         "treatment": treatment,
         "fertilizer": res.get("fertilizer") or db["fertilizer"],
+        "safety": res.get("safety") or db.get("safety", "Standard PPE required."),
+        "cost_estimate": res.get("cost_estimate") or db.get("cost_estimate", "Varies by region."),
         "reason": reason,
         "method": "Groq Llama 4 Expert"
     }
@@ -352,6 +358,8 @@ def _kindwise_predict(image_bytes: bytes) -> dict:
         "confidence": prob,
         "treatment": treatment_str,
         "fertilizer": db["fertilizer"],
+        "safety": db.get("safety", "Wear gloves and mask."),
+        "cost_estimate": db.get("cost_estimate", "Estimate: ₹10-20/spray."),
         "reason": reason,
         "method": "Kindwise Plant Health AI"
     }
@@ -385,18 +393,21 @@ def _expert_fallback(image_bytes: bytes, crop: str, errors: list = None) -> dict
         db = DISEASE_DB["rust"]
         return {"disease": "Foliar Rust / Fungal Lesions", "confidence": 0.82,
                 "treatment": db["treatment"], "fertilizer": db["fertilizer"],
+                "safety": db.get("safety"), "cost_estimate": db.get("cost_estimate"),
                 "reason": f"Detected {rust_pct*100:.1f}% orange/rust-colored pixels alongside {dark_pct*100:.1f}% dark necrotic areas, indicating active fungal rust infection on leaf surfaces.",
                 "method": "Pixel Vision Fallback"}
     if yellow_pct > 0.10 and green_pct < 0.35:
         db = DISEASE_DB["deficiency"]
         return {"disease": "Nutrient Deficiency / Chlorosis", "confidence": 0.78,
                 "treatment": db["treatment"], "fertilizer": db["fertilizer"],
+                "safety": db.get("safety"), "cost_estimate": db.get("cost_estimate"),
                 "reason": f"Image shows {yellow_pct*100:.1f}% yellowing with reduced green pigmentation ({green_pct*100:.1f}%), a hallmark of chlorosis caused by nutrient deficiency (likely Nitrogen, Iron, or Magnesium).",
                 "method": "Pixel Vision Fallback"}
     if rust_pct > 0.008:
         db = DISEASE_DB["spot"]
         return {"disease": "Leaf Spot / Blight Symptoms", "confidence": 0.75,
                 "treatment": db["treatment"], "fertilizer": db["fertilizer"],
+                "safety": db.get("safety"), "cost_estimate": db.get("cost_estimate"),
                 "reason": f"Detected {rust_pct*100:.2f}% orange-brown spot patterns on the leaf surface, suggesting early-stage fungal or bacterial leaf spot infection.",
                 "method": "Pixel Vision Fallback"}
     if green_pct > 0.50:
@@ -404,6 +415,8 @@ def _expert_fallback(image_bytes: bytes, crop: str, errors: list = None) -> dict
         return {"disease": "Healthy", "confidence": 0.88,
                 "treatment": f"{db['treatment']} {err_tag}",
                 "fertilizer": db["fertilizer"],
+                "safety": db.get("safety"),
+                "cost_estimate": db.get("cost_estimate"),
                 "reason": f"Image is dominated by {green_pct*100:.1f}% healthy green pigmentation with no significant discoloration, necrosis, or lesion patterns detected.",
                 "method": "Pixel Vision Fallback"}
 
@@ -411,6 +424,8 @@ def _expert_fallback(image_bytes: bytes, crop: str, errors: list = None) -> dict
     return {"disease": "Inconclusive — Requires Field Inspection", "confidence": 0.55,
             "treatment": f"{db['treatment']} {err_tag}",
             "fertilizer": db["fertilizer"],
+            "safety": db.get("safety", "Standard safety precautions."),
+            "cost_estimate": db.get("cost_estimate", "N/A"),
             "reason": "Image pixel analysis returned mixed signals. No dominant pattern matched known disease signatures. A physical field inspection by an agronomist is recommended.",
             "method": "Pixel Vision Fallback"}
 

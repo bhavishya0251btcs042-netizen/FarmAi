@@ -81,7 +81,26 @@
                         <h4 class="text-[10px] font-black text-brand-500 uppercase tracking-widest mb-2">Methodology</h4>
                         <p id="methodText" class="text-xs text-slate-500 mb-3 italic">...</p>
                         <h4 class="text-[10px] font-black text-brand-500 uppercase tracking-widest mb-2">Treatment Plan</h4>
-                        <p id="treatmentText" class="text-sm text-slate-300 leading-relaxed italic">...</p>
+                        <p id="treatmentText" class="text-sm text-slate-300 leading-relaxed italic mb-4">...</p>
+                        
+                        <div class="pt-4 border-t border-white/5">
+                            <h4 class="text-[10px] font-black text-orange-400 uppercase tracking-widest flex items-center gap-2 mb-2">
+                                <i class="fas fa-shield-virus"></i> Spray Safety Note
+                            </h4>
+                            <p id="safetyText" class="text-xs text-slate-400 leading-relaxed italic">...</p>
+                        </div>
+                    </div>
+
+                    <div class="p-5 rounded-3xl bg-brand-500/5 border border-brand-500/10 mb-4">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h4 class="text-[10px] font-black text-brand-500 uppercase tracking-widest mb-1">Cost Estimate (₹)</h4>
+                                <p id="costText" class="text-xs text-slate-300 font-medium">...</p>
+                            </div>
+                            <div class="w-10 h-10 rounded-full bg-brand-500/10 flex items-center justify-center text-brand-500">
+                                <i class="fas fa-indian-rupee-sign"></i>
+                            </div>
+                        </div>
                     </div>
                     <div class="p-4 rounded-3xl border border-yellow-500/20 bg-yellow-500/5 mb-8">
                         <div class="flex items-center gap-2 mb-2">
@@ -172,6 +191,9 @@
             document.getElementById('treatmentText').textContent = data.treatment;
             document.getElementById('methodText').textContent = data.method;
             document.getElementById('reasonText').textContent = data.reason || 'AI visual pattern analysis used for this diagnosis.';
+            document.getElementById('safetyText').textContent = data.safety || 'Wear gloves and avoid spraying during strong sunlight/wind.';
+            document.getElementById('costText').textContent = data.cost_estimate || 'Estimate pending regional verification.';
+            
             const conf = (data.confidence * 100);
             document.getElementById('confVal').textContent = conf.toFixed(1) + '%';
             setTimeout(() => document.getElementById('confBar').style.width = conf + '%', 100);
