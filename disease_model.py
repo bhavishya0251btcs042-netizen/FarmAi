@@ -9,7 +9,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # API URLs for orchestration
-GEMINI_URL   = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+# API URLs for orchestration
+GEMINI_URL   = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent"
 GROQ_URL     = "https://api.groq.com/openai/v1/chat/completions"
 GROQ_MODEL   = "llama-3.2-11b-vision-preview"
 KINDWISE_URL = "https://crop.kindwise.com/api/v1/identification"
@@ -169,7 +170,7 @@ def _preprocess_image(image_bytes: bytes, max_size: int = 800) -> bytes:
         ratio = max_size / max(w, h)
         img = img.resize((int(w * ratio), int(h * ratio)), Image.LANCZOS)
     buf = io.BytesIO()
-    img.save(buf, format="JPEG", quality=92)
+    img.save(buf, format="JPEG", quality=75)
     return buf.getvalue()
 
 # ---------------------------------------------------------------------------
@@ -209,8 +210,8 @@ def _gemini_predict(api_key: str, image_bytes: bytes, crop: str) -> dict:
 
     b = {
         "contents": [{"parts": [
-            {"text": expert_prompt},
-            {"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(image_bytes).decode("utf-8")}}
+            {"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(image_bytes).decode("utf-8")}},
+            {"text": expert_prompt}
         ]}],
         "generationConfig": {"temperature": 0.1, "maxOutputTokens": 800}
     }
@@ -275,8 +276,8 @@ def _groq_predict(api_key: str, image_bytes: bytes, crop: str) -> dict:
         "messages": [{
             "role": "user",
             "content": [
-                {"type": "text", "text": expert_prompt},
-                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64.b64encode(image_bytes).decode('utf-8')}"}}
+                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64.b64encode(image_bytes).decode('utf-8')}"}},
+                {"type": "text", "text": expert_prompt}
             ]
         }],
         "temperature": 0.1,
@@ -325,7 +326,12 @@ def _kindwise_predict(api_key: str, image_bytes: bytes) -> dict:
 
     b64 = base64.b64encode(image_bytes).decode("utf-8")
     headers = {"Api-Key": api_key, "Content-Type": "application/json"}
-    payload = {"images": [f"data:image/jpeg;base64,{b64}"], "details": "local_name,description,treatment"}
+    payload = {
+        "images": [f"data:image/jpeg;base64,{b64}"],
+        "latitude": 0.0,
+        "longitude": 0.0,
+        "similar_images": True
+    }
 
     r = requests.post(KINDWISE_URL, json=payload, headers=headers, timeout=15)
     if r.status_code != 200:
