@@ -493,7 +493,7 @@ def predict_disease_from_image(image_bytes: bytes, crop: str = None, lat: float 
 
 
 def predict_disease_multiple(image_list: list, crop: str = None, lat: float = None, lng: float = None) -> dict:
-    """Analyze multiple images of the same crop and return a consensus diagnosis."""
+    """Analyze multiple images of the same crop and return a consensus diagnosis with robust matching."""
     if not image_list:
         return {"error": "No images provided."}
     
@@ -503,39 +503,64 @@ def predict_disease_multiple(image_list: list, crop: str = None, lat: float = No
             res = predict_disease_from_image(img_bytes, crop=crop, lat=lat, lng=lng)
             results.append(res)
         except Exception:
-            # If one fails completely, we still count it but it might be "wrong"
             results.append({"disease": "Unreadable", "confidence": 0.0})
 
-    # Consistency Check & Aggregation
-    # 1. Group by disease name
-    counts = {}
+    # 1. Advanced Normalization Helper
+    def normalize(name):
+        n = name.lower()
+        # Remove common "filler" words that cause mismatch
+        n = re.sub(r'\b(of|in|on|the|crop|plant|wheat|rice|maize|corn)\b', '', n)
+        # Remove punctuation and extra whitespace
+        n = re.sub(r'[^\w\s]', '', n)
+        return " ".join(n.split())
+
+    # 2. Score diseases by frequency AND confidence
+    scores = {}
     for r in results:
-        d = r.get("disease", "Unknown").lower()
-        # Normalize disease names a bit
-        d = d.replace("healthy — mature crop", "healthy").replace("foliar rust / fungal lesions", "rust")
-        counts[d] = counts.get(d, 0) + 1
+        raw_name = r.get("disease", "Unknown")
+        norm_name = normalize(raw_name)
+        if not norm_name: norm_name = "unknown"
+        
+        # We give a score based on confidence to avoid picking a high-frequency but low-confidence guess
+        conf = r.get("confidence", 0.1)
+        scores[norm_name] = scores.get(norm_name, 0) + conf
+
+    if not scores:
+        return results[0]
+
+    # Consensus norm name is the one with the highest cumulative confidence score
+    consensus_norm = max(scores, key=scores.get)
     
-    # Identify the most frequent disease (Consensus)
-    consensus_disease = max(counts, key=counts.get)
+    # 3. Identify outliers based on normalized names
     wrong_count = 0
     valid_results = []
     
     for r in results:
-        d = r.get("disease", "Unknown").lower()
-        d = d.replace("healthy — mature crop", "healthy").replace("foliar rust / fungal lesions", "rust")
+        raw_name = r.get("disease", "Unknown")
+        norm_name = normalize(raw_name)
         
-        # An input is "wrong" if it doesn't match the consensus disease 
-        # or if it's inconclusive/unreadable/low confidence
-        if d != consensus_disease or r.get("confidence", 0) < 0.4:
+        # If the normalized name matches or shares significant keywords, it's valid
+        is_match = (norm_name == consensus_norm)
+        
+        # Check for keyword overlap (e.g. "leaf rust" vs "rust")
+        if not is_match:
+            c_words = set(consensus_norm.split())
+            r_words = set(norm_name.split())
+            if c_words and r_words and (c_words & r_words): # Shared keywords
+                is_match = True
+
+        if not is_match or r.get("confidence", 0) < 0.35:
             wrong_count += 1
         else:
             valid_results.append(r)
 
-    # Use the best result from the valid group
+    # 4. Final Aggregation
     if valid_results:
+        # Pick the most confident result among valid ones for the final display
         final_res = max(valid_results, key=lambda x: x.get("confidence", 0))
     else:
-        final_res = results[0]  # Fallback to first if none are "valid"
+        # If no consensus, pick the highest confidence overall
+        final_res = max(results, key=lambda x: x.get("confidence", 0))
 
     final_res["wrong_inputs"] = wrong_count
     final_res["total_inputs"] = len(image_list)

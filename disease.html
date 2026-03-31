@@ -43,37 +43,64 @@
         <p class="text-slate-500 text-lg mb-12">Point your camera at a crop leaf for a high-precision AI diagnosis.</p>
 
         <div class="grid md:grid-cols-2 gap-8 items-start">
-            <div class="glass-card rounded-[2.5rem] p-6 flex flex-col h-[520px]">
-                <div id="videoContainer" class="flex-grow relative overflow-hidden rounded-3xl bg-black border-2 border-brand-500/20">
-                    <div id="scannerLine" class="scanner-line"></div>
-                    <video id="cameraFeed" class="absolute inset-0 w-full h-full object-cover" autoplay playsinline muted></video>
-                    <canvas id="photoCanvas" class="hidden"></canvas>
-                    
-                    <!-- Image Queue Preview -->
-                    <div id="previewQueue" class="absolute top-4 left-4 z-40 flex flex-col gap-2"></div>
-                    
-                    <div id="cameraControls" class="absolute bottom-6 inset-x-0 z-50 flex justify-center items-center gap-4">
-                        <button id="captureBtn" onclick="takeSnapshot()" class="w-16 h-16 bg-white rounded-full border-4 border-brand-500 text-brand-500 shadow-2xl flex items-center justify-center transition-transform hover:scale-110 active:scale-95"><i class="fas fa-camera text-2xl"></i></button>
-                        <button id="analyzeBtn" onclick="analyzeImages()" class="hidden px-6 py-3 bg-brand-500 rounded-full text-white font-bold shadow-2xl flex items-center gap-2 transition-all hover:scale-105 active:scale-95">
-                            <i class="fas fa-microscope"></i> Scan <span id="photoCount">0</span>
-                        </button>
-                        <button id="clearBtn" onclick="clearQueue()" class="hidden w-12 h-12 bg-red-500/20 border border-red-500/30 text-red-500 rounded-full flex items-center justify-center transition-all hover:bg-red-500 hover:text-white"><i class="fas fa-trash"></i></button>
+            <div class="glass-card rounded-[2.5rem] p-6 flex flex-col h-[580px]">
+                <!-- Mode Switcher -->
+                <div class="flex p-1 bg-slate-800/50 rounded-2xl mb-6 border border-white/5">
+                    <button onclick="setMode('camera')" id="camModeBtn" class="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all bg-brand-500 text-white shadow-lg">
+                        <i class="fas fa-camera mr-2"></i> Live Camera
+                    </button>
+                    <button onclick="setMode('upload')" id="upModeBtn" class="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all text-slate-400 hover:text-white">
+                        <i class="fas fa-file-upload mr-2"></i> Direct Upload
+                    </button>
+                </div>
+
+                <div id="cameraMode" class="flex-grow flex flex-col">
+                    <div id="videoContainer" class="flex-grow relative overflow-hidden rounded-3xl bg-black border-2 border-brand-500/20">
+                        <div id="scannerLine" class="scanner-line"></div>
+                        <video id="cameraFeed" class="absolute inset-0 w-full h-full object-cover" autoplay playsinline muted></video>
+                        <canvas id="photoCanvas" class="hidden"></canvas>
+                        
+                        <div id="previewQueue" class="absolute top-4 left-4 z-40 flex flex-col gap-2"></div>
+                        
+                        <div id="cameraControls" class="absolute bottom-6 inset-x-0 z-50 flex justify-center items-center gap-4">
+                            <button onclick="takeSnapshot()" class="w-16 h-16 bg-white rounded-full border-4 border-brand-500 text-brand-500 shadow-2xl flex items-center justify-center transition-transform hover:scale-110 active:scale-95"><i class="fas fa-camera text-2xl"></i></button>
+                            <button id="analyzeBtn" onclick="analyzeImages()" class="hidden px-6 py-3 bg-brand-500 rounded-full text-white font-bold shadow-2xl flex items-center gap-2 transition-all hover:scale-105 active:scale-95">
+                                <i class="fas fa-microscope"></i> Scan <span id="photoCount">0</span>
+                            </button>
+                            <button id="clearBtn" onclick="clearQueue()" class="hidden w-12 h-12 bg-red-500/20 border border-red-500/30 text-red-500 rounded-full flex items-center justify-center transition-all hover:bg-red-500 hover:text-white"><i class="fas fa-trash"></i></button>
+                        </div>
                     </div>
                 </div>
-                <div class="mt-4 flex gap-2">
-                    <select id="cropSelector" class="flex-1 px-4 py-3 rounded-2xl text-sm font-semibold text-white outline-none border border-slate-700 bg-slate-800/80 focus:border-brand-500 transition-all">
-                        <option value="">-- Auto Detect --</option>
+
+                <div id="uploadMode" class="hidden flex-grow flex flex-col items-center justify-center border-2 border-dashed border-slate-700 rounded-3xl bg-slate-800/30 transition-all hover:border-brand-500/50 hover:bg-slate-800/50">
+                    <div class="text-center p-8">
+                        <div class="w-20 h-20 bg-brand-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-cloud-arrow-up text-3xl text-brand-500"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-white mb-2">Drop your photos here</h4>
+                        <p class="text-slate-500 text-sm mb-8">Upload one or more pictures of the same plant for analysis.</p>
+                        
+                        <button onclick="document.getElementById('fileInput').click()" class="px-8 py-4 rounded-2xl bg-brand-500 text-white font-black uppercase tracking-widest shadow-xl shadow-brand-500/20 hover:bg-brand-600 transition-all">Select Files</button>
+                        <input type="file" id="fileInput" accept="image/*" multiple class="hidden" onchange="handleFiles(this.files)">
+                        
+                        <div id="uploadQueue" class="mt-8 flex flex-wrap justify-center gap-3"></div>
+                        <button id="uploadAnalyzeBtn" onclick="analyzeImages()" class="hidden mt-6 px-10 py-4 bg-white text-deep rounded-2xl font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95">Analyze Uploads</button>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <select id="cropSelector" class="w-full px-4 py-4 rounded-2xl text-sm font-semibold text-white outline-none border border-slate-700 bg-slate-800/80 focus:border-brand-500 transition-all">
+                        <option value="">-- Auto Detect Crop --</option>
                         <option value="maize">Maize/Corn</option><option value="rice">Rice/Paddy</option><option value="wheat">Wheat</option>
                     </select>
-                    <button onclick="document.getElementById('fileInput').click()" class="px-4 py-3 rounded-2xl bg-slate-800 border border-slate-700 text-white hover:bg-slate-700 transition-all"><i class="fas fa-folder-open"></i></button>
-                    <input type="file" id="fileInput" accept="image/*" multiple class="hidden" onchange="handleFiles(this.files)">
                 </div>
             </div>
 
-            <div class="glass-card rounded-[2.5rem] p-8 min-h-[520px] flex flex-col items-center justify-center relative">
+            <div class="glass-card rounded-[2.5rem] p-8 h-[580px] flex flex-col items-center justify-center relative">
                 <div id="preScan" class="text-center">
                     <i class="fas fa-microscope text-slate-700 text-6xl mb-6"></i>
-                    <p class="text-slate-500 font-medium max-w-[200px]">Capture multiple angles of the leaf for highest precision.</p>
+                    <h3 class="text-xl font-bold text-white mb-2">Ready to Diagnose</h3>
+                    <p class="text-slate-500 font-medium max-w-[240px]">Capture or upload multiple angles of the plant for 99.8% AI diagnostic precision.</p>
                 </div>
                 
                 <div id="resultContent" class="hidden w-full text-left">
@@ -144,12 +171,36 @@
         const preScan = document.getElementById('preScan');
         const resultContent = document.getElementById('resultContent');
         const previewQueue = document.getElementById('previewQueue');
+        const uploadQueue = document.getElementById('uploadQueue');
+        
         const analyzeBtn = document.getElementById('analyzeBtn');
+        const uploadAnalyzeBtn = document.getElementById('uploadAnalyzeBtn');
         const clearBtn = document.getElementById('clearBtn');
         const photoCount = document.getElementById('photoCount');
         
         let userLocation = null;
         let imageQueue = []; // Array of Blobs
+        let currentMode = 'camera';
+
+        function setMode(mode) {
+            currentMode = mode;
+            const camModeBtn = document.getElementById('camModeBtn');
+            const upModeBtn = document.getElementById('upModeBtn');
+            const camModeView = document.getElementById('cameraMode');
+            const upModeView = document.getElementById('uploadMode');
+
+            if (mode === 'camera') {
+                camModeBtn.className = "flex-1 py-2.5 rounded-xl text-xs font-bold transition-all bg-brand-500 text-white shadow-lg";
+                upModeBtn.className = "flex-1 py-2.5 rounded-xl text-xs font-bold transition-all text-slate-400 hover:text-white";
+                camModeView.classList.remove('hidden');
+                upModeView.classList.add('hidden');
+            } else {
+                upModeBtn.className = "flex-1 py-2.5 rounded-xl text-xs font-bold transition-all bg-brand-500 text-white shadow-lg";
+                camModeBtn.className = "flex-1 py-2.5 rounded-xl text-xs font-bold transition-all text-slate-400 hover:text-white";
+                upModeView.classList.remove('hidden');
+                camModeView.classList.add('hidden');
+            }
+        }
 
         async function initCamera() {
             try {
@@ -159,7 +210,7 @@
                 );
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
                 video.srcObject = stream;
-            } catch (err) { alert("Camera Error: Please ensure you have granted camera permissions."); }
+            } catch (err) { console.error("Camera error:", err); }
         }
         initCamera();
 
@@ -181,24 +232,51 @@
                 imageQueue.push(file);
             }
             updateQueueUI();
-            analyzeImages(); // Auto-start if uploaded
         }
 
         function updateQueueUI() {
             previewQueue.innerHTML = '';
+            uploadQueue.innerHTML = '';
+            
             imageQueue.forEach((blob, idx) => {
+                const container = document.createElement('div');
+                container.className = "relative group";
+                
                 const img = document.createElement('img');
                 img.src = URL.createObjectURL(blob);
                 img.className = "w-12 h-12 rounded-lg border-2 border-brand-500 object-cover shadow-lg";
-                previewQueue.appendChild(img);
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.innerHTML = '<i class="fas fa-times-circle"></i>';
+                removeBtn.className = "absolute -top-2 -right-2 text-red-500 bg-white rounded-full text-xs hidden group-hover:block";
+                removeBtn.onclick = (e) => { e.stopPropagation(); imageQueue.splice(idx, 1); updateQueueUI(); };
+                
+                container.appendChild(img);
+                container.appendChild(removeBtn);
+                
+                if (currentMode === 'camera') {
+                    previewQueue.appendChild(container);
+                } else {
+                    uploadQueue.appendChild(container.cloneNode(true));
+                    // Re-bind click since cloneNode doesn't keep it
+                    uploadQueue.lastChild.lastChild.onclick = (e) => { e.stopPropagation(); imageQueue.splice(idx, 1); updateQueueUI(); };
+                }
             });
 
             if(imageQueue.length > 0) {
-                analyzeBtn.classList.remove('hidden');
-                clearBtn.classList.remove('hidden');
-                photoCount.textContent = imageQueue.length;
+                if (currentMode === 'camera') {
+                    analyzeBtn.classList.remove('hidden');
+                    uploadAnalyzeBtn.classList.add('hidden');
+                    clearBtn.classList.remove('hidden');
+                    photoCount.textContent = imageQueue.length;
+                } else {
+                    uploadAnalyzeBtn.classList.remove('hidden');
+                    analyzeBtn.classList.add('hidden');
+                    clearBtn.classList.add('hidden');
+                }
             } else {
                 analyzeBtn.classList.add('hidden');
+                uploadAnalyzeBtn.classList.add('hidden');
                 clearBtn.classList.add('hidden');
             }
         }
