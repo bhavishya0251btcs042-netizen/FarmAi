@@ -185,14 +185,17 @@ def _gemini_predict(api_key: str, image_bytes: bytes, crop: str) -> dict:
     Perform a deep morphological analysis on this {crop or 'crop'}.
     
     CLINICAL REASONING STEPS:
-    1. PHENOLOGICAL VALIDATION: First, determine if the crop is in a natural maturity or flowering stage.
-       - Wheat/Grains: If heads are golden/yellow but leaves are green, it is 100% HEALTHY MATURITY.
-       - Wheat Heads: Orange/yellow tips on a green head are often Anthers (Flowering), NOT Rust.
-    2. PATHOGEN VERIFICATION: 
-       - YELLOW RUST: Only report if you see raised, orange/yellow pustules in linear stripes on LEAVES.
-       - LOOSE SMUT: Only report if the head is replaced by a black powdery mass.
-       - PEAR RUST: Distinct large, bright orange lesions on leaves.
-    3. FINAL DECISION: If natural patterns are present, prioritize "Healthy".
+    1. PHENOLOGICAL VALIDATION:
+       - Wheat/Grains: If heads are golden, it is HEALTHY MATURITY. Orange tips = Anthers (Flowering).
+       - Maize/Corn: Orange/brown structures at the very TOP = Tassels/Flowering (HEALTHY).
+    2. PATHOGEN VERIFICATION (MAIZE):
+       - NORTHERN CORN LEAF BLIGHT: Only if you see distinct "Cigar-shaped" or "Boat-shaped" long lesions.
+       - GREY LEAF SPOT: Only if you see "Rectangular" or "Square" lesions limited by veins.
+       - COMMON RUST: Circular to elongated cinnamon-brown pustules on both leaf surfaces.
+    3. PATHOGEN VERIFICATION (WHEAT): 
+       - YELLOW RUST: Only if you see linear pustule streaks on LEAVES.
+       - LOOSE SMUT: Black powdery head mass.
+    4. FINAL DECISION: If natural patterns are present, prioritize "Healthy".
     
     Return ONLY a JSON object:
     {{
@@ -202,7 +205,7 @@ def _gemini_predict(api_key: str, image_bytes: bytes, crop: str) -> dict:
       "treatment": "Precise Chemical + Dosage (e.g. Propiconazole 25% EC at 2ml per 1L)",
       "fertilizer": "Specific NPK/Micronutrient recommendations",
       "cost_estimate": "₹... per acre",
-      "reason": "Explain morphology: e.g., 'Anthers detected on healthy grain head' or 'Linear pustules found on leaf blade'."
+      "reason": "Expert morphology assessment."
     }}
     """
 
@@ -258,16 +261,13 @@ def _groq_predict(api_key: str, image_bytes: bytes, crop: str) -> dict:
         raise ValueError("X-Missing")
 
     expert_prompt = f"""You are a Clinical Plant Pathologist. Analyze this {crop or 'crop'}.
-    1. PHENOLOGICAL VALIDATION: Check for natural maturity (yellowing heads/senescence) vs disease (striped leaves/lesions).
-    2. MORPHOLOGICAL CRITERIA: 
-       - YELLOW RUST: Only if linear pustule streaks are present on leaves.
-       - MAIZE BLIGHT: Only if boat-shaped lesions are present.
-    3. If healthy/maturing -> "Healthy".
-    4. If diseased, identify accurately (e.g., Pear Rust, Wheat Rust).
-    5. Include chemicals, doses (ml/L), and NPK fertilizer.
+    1. MAIZE VALIDATION: Differentiate between healthy orange Tassels at the top vs disease.
+    2. MAIZE DISEASES: "Cigar-shaped" = N. Blight, "Rectangular" = Grey Leaf Spot, "Circular" = Rust.
+    3. Grains: Heads (Maturity/Anthers) vs Leaf (Rust).
+    4. If healthy -> "Healthy". If diseased, exact chemicals + doses.
     
     Return JSON only:
-    {{"disease": "...", "confidence": 0.9, "severity": "...", "treatment": "...", "fertilizer": "...", "reason": "Detailed visual proof."}}"""
+    {{"disease": "...", "confidence": 0.9, "severity": "...", "treatment": "...", "reason": "Proof."}}"""
 
     payload = {
         "model": GROQ_MODEL,
