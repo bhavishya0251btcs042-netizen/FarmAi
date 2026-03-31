@@ -6,7 +6,7 @@ from PIL import Image
 import numpy as np
 from dotenv import load_dotenv
 
-SERVER_VERSION = "v6.5-Network-Audit-Active"
+SERVER_VERSION = "v7.0-Multi-Key-Authority"
 
 load_dotenv()
 
@@ -455,20 +455,33 @@ def predict_disease_from_image(image_bytes: bytes, crop: str = None, lat: float 
     results = []
     errs = []
     
-    # Refresh keys from environment to ensure latest .env values
-    GK = os.getenv("GEMINI_API_KEY", "").strip()
-    XK = os.getenv("GROK_API_KEY", "").strip()
+    # Refresh Key Pools (supports comma-separated rotation)
+    GK_POOL = [k.strip() for k in os.getenv("GEMINI_API_KEY", "").split(",") if k.strip()]
+    XK_POOL = [k.strip() for k in os.getenv("GROK_API_KEY", "").split(",") if k.strip()]
     KK = os.getenv("CROP_HEALTH_API_KEY", "").strip()
 
-    def run_tier(name, func, key, *args):
-        if not key: return {"name": name, "res": None, "err": "Key Missing"}
-        try: return {"name": name, "res": func(key, *args), "err": None}
-        except Exception as e: return {"name": name, "res": None, "err": str(e)}
+    def run_tier_with_rotation(name, func, pool, *args):
+        if not pool: return {"name": name, "res": None, "err": "Key Pool Empty"}
+        last_e = "Unknown"
+        # 🔄 AUTOMATED KEY ROTATION POOL
+        for ki, key in enumerate(pool):
+            try:
+                res = func(key, *args)
+                if res: 
+                    res["method"] = f"{res.get('method','')} (Key Pool Index {ki})"
+                    return {"name": name, "res": res, "err": None}
+            except Exception as e:
+                last_e = str(e)
+                # Only rotate if it's an API/Authentication error (401, 403, 429, 400)
+                if any(err in last_e for err in ["401", "403", "429", "400", "decommissioned"]):
+                    continue
+                else: break # Network/Timeout errors usually hit the whole pool
+        return {"name": name, "res": None, "err": f"{name} Pool Exhausted: {last_e[:30]}"}
 
     with ThreadPoolExecutor(max_workers=4) as executor:
         futures = [
-            executor.submit(run_tier, "Gemini", _gemini_predict, GK, image_bytes, c),
-            executor.submit(run_tier, "Groq", _groq_predict, XK, image_bytes, c),
+            executor.submit(run_tier_with_rotation, "Gemini", _gemini_predict, GK_POOL, image_bytes, c),
+            executor.submit(run_tier_with_rotation, "Groq", _groq_predict, XK_POOL, image_bytes, c),
             executor.submit(run_tier, "Kindwise", _kindwise_predict, KK, image_bytes)
         ]
         tier_results = [f.result() for f in futures]
