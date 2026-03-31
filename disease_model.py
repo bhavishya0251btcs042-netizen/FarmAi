@@ -182,30 +182,25 @@ def _gemini_predict(api_key: str, image_bytes: bytes, crop: str) -> dict:
         raise ValueError("G-Missing")
 
     expert_prompt = f"""You are a Senior Clinical Plant Pathologist.
-    Perform a deep morphological analysis on this {crop or 'crop'}.
+    Perform a high-precision morphological analysis on this {crop or 'crop'}.
     
     CLINICAL REASONING STEPS:
-    1. PHENOLOGICAL VALIDATION:
-       - Wheat/Grains: If heads are golden, it is HEALTHY MATURITY. Orange tips = Anthers (Flowering).
-       - Maize/Corn: Orange/brown structures at the very TOP = Tassels/Flowering (HEALTHY).
-    2. PATHOGEN VERIFICATION (MAIZE):
-       - NORTHERN CORN LEAF BLIGHT: Only if you see distinct "Cigar-shaped" or "Boat-shaped" long lesions.
-       - GREY LEAF SPOT: Only if you see "Rectangular" or "Square" lesions limited by veins.
-       - COMMON RUST: Circular to elongated cinnamon-brown pustules on both leaf surfaces.
-    3. PATHOGEN VERIFICATION (WHEAT): 
-       - YELLOW RUST: Only if you see linear pustule streaks on LEAVES.
-       - LOOSE SMUT: Black powdery head mass.
-    4. FINAL DECISION: If natural patterns are present, prioritize "Healthy".
+    1. PHENOLOGICAL VALIDATION (CRITICAL):
+       - WHEAT RIPENING: If wheat heads are turning pale/golden uniformly, it is 100% HEALTHY MATURITY.
+       - FUSARIUM SCAB: Only report if you see PREMATURE, irregular bleaching of spikelets while others remain green. If unsure, prioritize "Healthy - Monitoring Recommended".
+       - ANTHERS: Small orange/yellow tips on wheat heads are natural flowering, not rust.
+    2. MAIZE VALIDATION: Tassels at the top are healthy. Boat-shaped lesions = Blight.
+    3. FINAL DECISION: If natural patterns are dominant, you MUST report "Healthy".
     
     Return ONLY a JSON object:
     {{
       "disease": "Scientific + Common Name",
       "confidence": 0.95,
       "severity": "Low/Medium/High/Healthy",
-      "treatment": "Precise Chemical + Dosage (e.g. Propiconazole 25% EC at 2ml per 1L)",
+      "treatment": "Precise Chemical + Dosage",
       "fertilizer": "Specific NPK/Micronutrient recommendations",
       "cost_estimate": "₹... per acre",
-      "reason": "Expert morphology assessment."
+      "reason": "Expert evidence-based reasoning."
     }}
     """
 
@@ -522,7 +517,14 @@ def predict_disease_multiple(image_list: list, crop: str = None, lat: float = No
 
     # Consensus norm name is the one with the highest cumulative confidence score
     consensus_norm = max(scores, key=scores.get)
+    max_score = scores[consensus_norm]
     
+    # 🕵️ SKEPTICAL CONSENSUS GUARDRAIL
+    # If confidence is low (<0.75 cumulative) and any model says "Healthy", prioritize health
+    has_healthy_signal = any("healthy" in normalize(r.get("disease","")) for r in results)
+    if max_score < 0.75 and has_healthy_signal:
+        consensus_norm = "healthy"
+
     # 3. Identify outliers based on normalized names
     wrong_count = 0
     valid_results = []
