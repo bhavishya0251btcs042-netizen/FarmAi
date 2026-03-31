@@ -181,31 +181,28 @@ def _gemini_predict(api_key: str, image_bytes: bytes, crop: str) -> dict:
     if not api_key:
         raise ValueError("G-Missing")
 
-    expert_prompt = f"""You are a world-class Plant Pathologist AI.
-    Analyze the provided image of a {crop if crop else 'crop'} and provide a highly accurate diagnosis.
+    expert_prompt = f"""You are a Senior Clinical Plant Pathologist.
+    Perform a deep morphological analysis on this {crop or 'crop'}.
     
-    STRICT DIAGNOSTIC CONSTRAINTS:
-    - CATEGORIZATION: If vibrant green/lush with NO spots -> "Healthy".
-    - RUST DETECTION: Cedar-Apple Rust or Pear Rust often show large, vibrant ORANGE/YELLOW spots with black centers on leaves. These are NOT ripening; they are active fungal infections. Report as "Rust".
-    - YELLOW RUST (Grains): Distinct yellow pustule STRIPES on leaves/heads.
-    - SMUT DETECTION: Black powdery grain heads = "Loose Smut".
+    CLINICAL REASONING STEPS:
+    1. PHENOLOGICAL VALIDATION: First, determine if the crop is in a natural maturity or flowering stage.
+       - Wheat/Grains: If heads are golden/yellow but leaves are green, it is 100% HEALTHY MATURITY.
+       - Wheat Heads: Orange/yellow tips on a green head are often Anthers (Flowering), NOT Rust.
+    2. PATHOGEN VERIFICATION: 
+       - YELLOW RUST: Only report if you see raised, orange/yellow pustules in linear stripes on LEAVES.
+       - LOOSE SMUT: Only report if the head is replaced by a black powdery mass.
+       - PEAR RUST: Distinct large, bright orange lesions on leaves.
+    3. FINAL DECISION: If natural patterns are present, prioritize "Healthy".
     
-    Requirements:
-    1. EXACT Scientific + Common Name.
-    2. Morphological Analysis: Lesion shape, colors, and specific distribution.
-    3. Infection Stage: Early/Medium/Late.
-    4. Precise Treatment: Chemicals + Dosage (e.g. 2g/L).
-
     Return ONLY a JSON object:
     {{
-      "disease": "Exact Name",
+      "disease": "Scientific + Common Name",
       "confidence": 0.95,
-      "severity": "Early/Medium/Late Infection",
-      "method": "Neural Morphological Analysis",
-      "treatment": "Detailed protocol",
-      "safety": "Safety protocol",
+      "severity": "Low/Medium/High/Healthy",
+      "treatment": "Precise Chemical + Dosage (e.g. Propiconazole 25% EC at 2ml per 1L)",
+      "fertilizer": "Specific NPK/Micronutrient recommendations",
       "cost_estimate": "₹... per acre",
-      "reason": "Evidence-based reasoning"
+      "reason": "Explain morphology: e.g., 'Anthers detected on healthy grain head' or 'Linear pustules found on leaf blade'."
     }}
     """
 
@@ -260,17 +257,17 @@ def _groq_predict(api_key: str, image_bytes: bytes, crop: str) -> dict:
     if not api_key:
         raise ValueError("X-Missing")
 
-    expert_prompt = f"""You are an expert plant pathologist AI. Diagnose this image of {crop or 'a plant'}.
-
-    STRICT RULES:
-    1. If the crop is green and lush with no visible lesions/spots -> disease = "Healthy".
-    2. Aggressively detect fungal spots (e.g., Cedar-Apple Rust, Pear Rust, Leaf Spot).
-    3. Name the SPECIFIC disease — not just symptoms.
-    4. Treatment MUST include chemical names, exact doses, and spray timing.
-    5. Fertilizer: exact product + dose.
+    expert_prompt = f"""You are a Clinical Plant Pathologist. Analyze this {crop or 'crop'}.
+    1. PHENOLOGICAL VALIDATION: Check for natural maturity (yellowing heads/senescence) vs disease (striped leaves/lesions).
+    2. MORPHOLOGICAL CRITERIA: 
+       - YELLOW RUST: Only if linear pustule streaks are present on leaves.
+       - MAIZE BLIGHT: Only if boat-shaped lesions are present.
+    3. If healthy/maturing -> "Healthy".
+    4. If diseased, identify accurately (e.g., Pear Rust, Wheat Rust).
+    5. Include chemicals, doses (ml/L), and NPK fertilizer.
     
-    Return ONLY raw JSON (no markdown):
-    {{"disease": "...", "confidence": 0.9, "severity": "Low/Medium/High", "treatment": "...", "fertilizer": "...", "safety": "...", "cost_estimate": "₹...", "reason": "Explain EXACT visual symptoms found."}}"""
+    Return JSON only:
+    {{"disease": "...", "confidence": 0.9, "severity": "...", "treatment": "...", "fertilizer": "...", "reason": "Detailed visual proof."}}"""
 
     payload = {
         "model": GROQ_MODEL,
@@ -339,9 +336,11 @@ def _kindwise_predict(api_key: str, image_bytes: bytes) -> dict:
         raise Exception(f"K-{r.status_code}")
 
     data = r.json()
-    # Navigate Kindwise response structure
-    health = data.get("result", {}).get("disease", {})
-    suggestions = health.get("suggestions", [])
+    # Handle both direct suggestings and asynchronous identification
+    result = data.get("result", {})
+    health = result.get("disease", {})
+    suggestions = health.get("suggestions", []) or result.get("suggestions", [])
+    
     if not suggestions:
         raise Exception("K-NoData")
 
