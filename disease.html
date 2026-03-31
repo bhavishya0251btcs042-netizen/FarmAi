@@ -48,11 +48,16 @@
                     <div id="scannerLine" class="scanner-line"></div>
                     <video id="cameraFeed" class="absolute inset-0 w-full h-full object-cover" autoplay playsinline muted></video>
                     <canvas id="photoCanvas" class="hidden"></canvas>
-                    <img id="capturedImage" class="hidden absolute inset-0 w-full h-full object-contain z-20">
+                    
+                    <!-- Image Queue Preview -->
+                    <div id="previewQueue" class="absolute top-4 left-4 z-40 flex flex-col gap-2"></div>
                     
                     <div id="cameraControls" class="absolute bottom-6 inset-x-0 z-50 flex justify-center items-center gap-4">
                         <button id="captureBtn" onclick="takeSnapshot()" class="w-16 h-16 bg-white rounded-full border-4 border-brand-500 text-brand-500 shadow-2xl flex items-center justify-center transition-transform hover:scale-110 active:scale-95"><i class="fas fa-camera text-2xl"></i></button>
-                        <button id="retakeBtn" onclick="retake()" class="hidden w-12 h-12 bg-slate-800 rounded-full border border-white/20 text-white flex items-center justify-center transition-all hover:bg-slate-700"><i class="fas fa-undo"></i></button>
+                        <button id="analyzeBtn" onclick="analyzeImages()" class="hidden px-6 py-3 bg-brand-500 rounded-full text-white font-bold shadow-2xl flex items-center gap-2 transition-all hover:scale-105 active:scale-95">
+                            <i class="fas fa-microscope"></i> Scan <span id="photoCount">0</span>
+                        </button>
+                        <button id="clearBtn" onclick="clearQueue()" class="hidden w-12 h-12 bg-red-500/20 border border-red-500/30 text-red-500 rounded-full flex items-center justify-center transition-all hover:bg-red-500 hover:text-white"><i class="fas fa-trash"></i></button>
                     </div>
                 </div>
                 <div class="mt-4 flex gap-2">
@@ -61,22 +66,29 @@
                         <option value="maize">Maize/Corn</option><option value="rice">Rice/Paddy</option><option value="wheat">Wheat</option>
                     </select>
                     <button onclick="document.getElementById('fileInput').click()" class="px-4 py-3 rounded-2xl bg-slate-800 border border-slate-700 text-white hover:bg-slate-700 transition-all"><i class="fas fa-folder-open"></i></button>
-                    <input type="file" id="fileInput" accept="image/*" class="hidden" onchange="handleFile(this.files[0])">
+                    <input type="file" id="fileInput" accept="image/*" multiple class="hidden" onchange="handleFiles(this.files)">
                 </div>
             </div>
 
-            <div class="glass-card rounded-[2.5rem] p-8 min-h-[520px] flex flex-col items-center justify-center">
+            <div class="glass-card rounded-[2.5rem] p-8 min-h-[520px] flex flex-col items-center justify-center relative">
                 <div id="preScan" class="text-center">
                     <i class="fas fa-microscope text-slate-700 text-6xl mb-6"></i>
-                    <p class="text-slate-500 font-medium max-w-[200px]">Center the leaf in the frame and press capture</p>
+                    <p class="text-slate-500 font-medium max-w-[200px]">Capture multiple angles of the leaf for highest precision.</p>
                 </div>
+                
                 <div id="resultContent" class="hidden w-full text-left">
-                    <span class="px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-500 text-[10px] font-black uppercase tracking-widest mb-4 inline-block">Real-time Result</span>
+                    <div id="wrongInputBadge" class="hidden flex items-center gap-2 mb-4 px-3 py-1.5 rounded-xl bg-red-500/10 border border-red-500/20 text-[10px] font-bold text-red-400">
+                        <i class="fas fa-exclamation-triangle"></i> <span id="wrongInputText">0 inputs were inconsistent</span>
+                    </div>
+
+                    <span class="px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-500 text-[10px] font-black uppercase tracking-widest mb-4 inline-block">Consensus Result</span>
                     <h3 id="diseaseName" class="text-3xl font-black text-white mb-4 leading-tight">...</h3>
+                    
                     <div class="mb-8">
                         <div class="flex justify-between text-[10px] font-black uppercase tracking-tighter text-slate-500 mb-2"><span>AI Confidence</span><span id="confVal">0%</span></div>
                         <div class="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden"><div id="confBar" class="h-full bg-brand-500 transition-all duration-1000" style="width: 0%"></div></div>
                     </div>
+
                     <div id="locationBadge" class="hidden flex items-center gap-2 mb-4 px-3 py-1.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-[10px] font-bold text-blue-400">
                         <i class="fas fa-location-dot"></i> <span id="locationText">Detecting Location...</span>
                     </div>
@@ -128,17 +140,21 @@
 
     <script>
         const video = document.getElementById('cameraFeed');
-        const capturedImg = document.getElementById('capturedImage');
         const scannerLine = document.getElementById('scannerLine');
         const preScan = document.getElementById('preScan');
         const resultContent = document.getElementById('resultContent');
+        const previewQueue = document.getElementById('previewQueue');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const photoCount = document.getElementById('photoCount');
+        
         let userLocation = null;
+        let imageQueue = []; // Array of Blobs
 
         async function initCamera() {
             try {
-                // Request location access early
                 navigator.geolocation.getCurrentPosition(
-                    (pos) => { userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude }; console.log("Location locked."); },
+                    (pos) => { userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude }; },
                     (err) => { console.warn("Location denied."); }
                 );
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
@@ -152,38 +168,58 @@
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             canvas.getContext('2d').drawImage(video, 0, 0);
-            const dataUrl = canvas.toDataURL('image/jpeg');
-            capturedImg.src = dataUrl;
-            capturedImg.classList.remove('hidden');
-            video.classList.add('hidden');
-            document.getElementById('captureBtn').classList.add('hidden');
-            document.getElementById('retakeBtn').classList.remove('hidden');
             
-            canvas.toBlob(blob => analyzeImage(blob), 'image/jpeg');
+            canvas.toBlob(blob => {
+                imageQueue.push(blob);
+                updateQueueUI();
+            }, 'image/jpeg');
         }
 
-        function handleFile(file) {
-            if(!file) return;
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                capturedImg.src = e.target.result;
-                capturedImg.classList.remove('hidden');
-                video.classList.add('hidden');
-                document.getElementById('captureBtn').classList.add('hidden');
-                document.getElementById('retakeBtn').classList.remove('hidden');
-                analyzeImage(file);
-            };
-            reader.readAsDataURL(file);
+        function handleFiles(files) {
+            if(!files.length) return;
+            for(let file of files) {
+                imageQueue.push(file);
+            }
+            updateQueueUI();
+            analyzeImages(); // Auto-start if uploaded
         }
 
-        async function analyzeImage(blob) {
+        function updateQueueUI() {
+            previewQueue.innerHTML = '';
+            imageQueue.forEach((blob, idx) => {
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(blob);
+                img.className = "w-12 h-12 rounded-lg border-2 border-brand-500 object-cover shadow-lg";
+                previewQueue.appendChild(img);
+            });
+
+            if(imageQueue.length > 0) {
+                analyzeBtn.classList.remove('hidden');
+                clearBtn.classList.remove('hidden');
+                photoCount.textContent = imageQueue.length;
+            } else {
+                analyzeBtn.classList.add('hidden');
+                clearBtn.classList.add('hidden');
+            }
+        }
+
+        function clearQueue() {
+            imageQueue = [];
+            updateQueueUI();
+        }
+
+        async function analyzeImages() {
+            if(imageQueue.length === 0) return;
+            
             const token = localStorage.getItem('token');
             scannerLine.style.display = 'block';
             preScan.classList.add('hidden');
             resultContent.classList.add('hidden');
+            video.classList.add('opacity-50');
 
             const fd = new FormData();
-            fd.append('file', blob);
+            imageQueue.forEach(blob => fd.append('files', blob));
+            
             const crop = document.getElementById('cropSelector').value;
             if(crop) fd.append('crop', crop);
             if(userLocation) {
@@ -196,14 +232,14 @@
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}` },
                     body: fd,
-                    cache: 'no-store'
                 });
                 const data = await res.json();
                 setTimeout(() => {
                     scannerLine.style.display = 'none';
+                    video.classList.remove('opacity-50');
                     displayResult(data);
                 }, 1500);
-            } catch (err) { alert("Engine unreachable. Check connection."); scannerLine.style.display = 'none'; }
+            } catch (err) { alert("Engine unreachable. Check connection."); scannerLine.style.display = 'none'; video.classList.remove('opacity-50'); }
         }
 
         function displayResult(data) {
@@ -216,6 +252,14 @@
             document.getElementById('costText').textContent = data.cost_estimate || 'Estimate pending regional verification.';
             document.getElementById('sevVal').textContent = data.severity || 'Medium';
             
+            const wrongBadge = document.getElementById('wrongInputBadge');
+            if(data.wrong_inputs > 0) {
+                wrongBadge.classList.remove('hidden');
+                document.getElementById('wrongInputText').textContent = `${data.wrong_inputs} input(s) were wrong/inconsistent among ${data.total_inputs} total.`;
+            } else {
+                wrongBadge.classList.add('hidden');
+            }
+
             const sevIcon = document.getElementById('sevIcon');
             const sevColor = data.severity === 'High' ? 'text-red-500' : (data.severity === 'Low' || data.severity === 'Healthy' ? 'text-green-500' : 'text-yellow-500');
             sevIcon.className = `fas fa-thermometer-half ${sevColor}`;
@@ -233,13 +277,12 @@
         }
 
         function retake() {
-            capturedImg.classList.add('hidden');
-            video.classList.remove('hidden');
-            document.getElementById('captureBtn').classList.remove('hidden');
-            document.getElementById('retakeBtn').classList.add('hidden');
+            clearQueue();
             resultContent.classList.add('hidden');
             preScan.classList.remove('hidden');
+            video.classList.remove('hidden', 'opacity-50');
         }
+
     </script>
 </body>
 </html>

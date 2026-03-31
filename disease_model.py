@@ -436,8 +436,9 @@ def _expert_fallback(image_bytes: bytes, crop: str, errors: list = None) -> dict
             "method": "Pixel Vision Fallback"}
 
 # ---------------------------------------------------------------------------
-# MAIN ORCHESTRATOR
+# MAIN ORCHESTRATORS
 # ---------------------------------------------------------------------------
+
 def predict_disease_from_image(image_bytes: bytes, crop: str = None, lat: float = None, lng: float = None) -> dict:
     c = crop or "Plant"
     errs = []
@@ -489,3 +490,59 @@ def predict_disease_from_image(image_bytes: bytes, crop: str = None, lat: float 
 
     # TIER 4: Local pixel fallback (always works)
     return enrich_with_location(_expert_fallback(image_bytes, c, errs))
+
+
+def predict_disease_multiple(image_list: list, crop: str = None, lat: float = None, lng: float = None) -> dict:
+    """Analyze multiple images of the same crop and return a consensus diagnosis."""
+    if not image_list:
+        return {"error": "No images provided."}
+    
+    results = []
+    for img_bytes in image_list:
+        try:
+            res = predict_disease_from_image(img_bytes, crop=crop, lat=lat, lng=lng)
+            results.append(res)
+        except Exception:
+            # If one fails completely, we still count it but it might be "wrong"
+            results.append({"disease": "Unreadable", "confidence": 0.0})
+
+    # Consistency Check & Aggregation
+    # 1. Group by disease name
+    counts = {}
+    for r in results:
+        d = r.get("disease", "Unknown").lower()
+        # Normalize disease names a bit
+        d = d.replace("healthy — mature crop", "healthy").replace("foliar rust / fungal lesions", "rust")
+        counts[d] = counts.get(d, 0) + 1
+    
+    # Identify the most frequent disease (Consensus)
+    consensus_disease = max(counts, key=counts.get)
+    wrong_count = 0
+    valid_results = []
+    
+    for r in results:
+        d = r.get("disease", "Unknown").lower()
+        d = d.replace("healthy — mature crop", "healthy").replace("foliar rust / fungal lesions", "rust")
+        
+        # An input is "wrong" if it doesn't match the consensus disease 
+        # or if it's inconclusive/unreadable/low confidence
+        if d != consensus_disease or r.get("confidence", 0) < 0.4:
+            wrong_count += 1
+        else:
+            valid_results.append(r)
+
+    # Use the best result from the valid group
+    if valid_results:
+        final_res = max(valid_results, key=lambda x: x.get("confidence", 0))
+    else:
+        final_res = results[0]  # Fallback to first if none are "valid"
+
+    final_res["wrong_inputs"] = wrong_count
+    final_res["total_inputs"] = len(image_list)
+    
+    if wrong_count > 0:
+        msg = f"Detected {wrong_count} inconsistent/invalid image(s) out of {len(image_list)}."
+        final_res["reason"] = f"{msg} {final_res.get('reason', '')}"
+        
+    return final_res
+

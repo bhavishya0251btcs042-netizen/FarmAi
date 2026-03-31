@@ -16,9 +16,9 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 import os, shutil, random, string
-from disease_model import predict_disease_from_image
+from disease_model import predict_disease_from_image, predict_disease_multiple
 import requests as http_requests
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime, timedelta
 from passlib.context import CryptContext
 from jose import jwt
@@ -464,15 +464,23 @@ def predict_fertilizer(req: FertilizerRequest, current_user: str = Depends(get_c
 
 @app.post("/predict-disease")
 async def predict_disease(
-    file: UploadFile = File(...),
+    files: List[UploadFile] = File(...),
     crop: Optional[str] = Form(None),
     lat: Optional[float] = Form(None),
     lng: Optional[float] = Form(None),
     current_user: str = Depends(get_current_user)
 ):
     try:
-        contents = await file.read()
-        result = predict_disease_from_image(contents, crop=crop or "", lat=lat, lng=lng)
+        image_list = []
+        for file in files:
+            contents = await file.read()
+            image_list.append(contents)
+        
+        if len(image_list) == 1:
+            result = predict_disease_from_image(image_list[0], crop=crop or "", lat=lat, lng=lng)
+        else:
+            result = predict_disease_multiple(image_list, crop=crop or "", lat=lat, lng=lng)
+
         if "error" in result:
             return result
         return {
@@ -485,7 +493,9 @@ async def predict_disease(
             "cost_estimate": result.get("cost_estimate", ""),
             "location_name": result.get("location_name", ""),
             "reason":     result.get("reason", "Diagnosis based on AI visual analysis."),
-            "method":     result.get("method", "")
+            "method":     result.get("method", ""),
+            "wrong_inputs": result.get("wrong_inputs", 0),
+            "total_inputs": result.get("total_inputs", len(image_list))
         }
     except Exception as e:
         import traceback
@@ -495,7 +505,7 @@ async def predict_disease(
             "confidence": 0.0,
             "treatment": "System encountered an error. Please try again.",
             "fertilizer": "",
-            "reason": "An internal error occurred during image analysis.",
+            "reason": f"An internal error occurred: {str(e)}",
             "method": "System Error"
         }
 
