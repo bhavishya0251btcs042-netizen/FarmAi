@@ -73,6 +73,10 @@ DISEASE_DB = {
         "treatment": "Bordeaux Mixture 1% preparation: Dissolve 10g of Copper Sulfate (CuSO₄) in 500ml water. Separately dissolve 10g of hydrated lime in another 500ml of water. Slowly pour the CuSO₄ solution into the lime solution (never the reverse). Test with litmus — should be neutral or slightly alkaline. Apply 1-2 litres per tree, spray every 7-10 days.",
         "fertilizer": "No additional fertilizer needed if used as preventive treatment."
     },
+    "scab": {
+        "treatment": "Step 1: Start spraying EARLY in the growing season, even before symptoms appear (weather-driven disease — spreads in wet/humid conditions). Step 2: Spray Mancozeb 75WP at 2g per litre (40g per 20L tank) every 7-10 days for 3-4 cycles. Step 3: Alternative fungicides — Carbendazim 50WP at 1g/L OR Chlorothalonil 75WP at 2g/L (rotate to prevent resistance). Step 4: Remove and burn all infected leaves and fallen fruit. Step 5: Avoid overhead irrigation to keep leaves dry. Step 6: Prune to improve air circulation inside the canopy.",
+        "fertilizer": "Apply Calcium Nitrate at 200g per 100L water as foliar spray to strengthen leaf tissue. Avoid excess Nitrogen which increases susceptibility."
+    },
     "healthy": {
         "treatment": "No treatment needed. Crop appears in good health. Continue regular monitoring every 5-7 days. Maintain standard cultural practices (proper spacing, timely irrigation, weed management).",
         "fertilizer": "Continue your existing NPK schedule based on soil test results. As a preventive boost, apply NPK 19-19-19 at 2g per litre as foliar spray once a month."
@@ -114,6 +118,19 @@ def _parse_json_safely(text: str) -> dict:
             pass
     raise ValueError("No valid JSON found in response")
 
+def _correct_scientific_names(text: str) -> str:
+    """Fix common AI scientific name typos."""
+    corrections = {
+        "Venturia pirina": "Venturia pyrina",
+        "venturia pirina": "Venturia pyrina",
+        "Sphaerotheca pannosa": "Podosphaera pannosa",  # updated taxonomy
+        "Puccinia tritici": "Puccinia triticina",       # correct species name
+    }
+    for wrong, right in corrections.items():
+        text = text.replace(wrong, right)
+    return text
+
+
 def _preprocess_image(image_bytes: bytes, max_size: int = 800) -> bytes:
     """Resize and optimize image for best AI analysis results."""
     img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
@@ -142,10 +159,14 @@ CRITICAL RULES - follow ALL strictly:
 3. Treatment MUST be step-by-step with:
    - Exact chemical name AND formulation (e.g. Mancozeb 75WP, Copper Oxychloride 50WP)
    - Exact dose per litre AND per 20-litre spray tank (e.g. 2g/L = 40g per 20L tank)
-   - Number of applications and interval (e.g. spray every 7-10 days for 3 cycles)
+   - Spray TIMING: when to start (e.g. early in season, before symptoms, at first sign)
+   - At least ONE alternative fungicide for rotation (e.g. Carbendazim 50WP or Chlorothalonil 75WP)
+   - Environmental advice (e.g. avoid overhead irrigation, improve air circulation)
+   - Correct scientific name of the pathogen (e.g. Venturia pyrina, NOT pirina)
    - For Bordeaux Mixture: state exactly 10g CuSO4 + 10g hydrated lime per litre of water
 4. Fertilizer: exact product + dose (e.g. MOP at 3kg/acre - NOT vague like 'boost potassium').
 5. Confidence: assign based on clarity of symptoms visible in the image.
+6. In 'reason': use the correct scientific name of the pathogen (e.g. Venturia pyrina).
 
 Respond ONLY with this exact JSON (no markdown, no extra text):
 {{"disease": "...", "confidence": 0.95, "treatment": "...", "fertilizer": "..."}}"""
@@ -171,6 +192,12 @@ Respond ONLY with this exact JSON (no markdown, no extra text):
     treatment = res.get("treatment", "")
     if len(treatment) < 30:  # if too short/vague, use DB
         treatment = db["treatment"]
+
+    # Fix scientific name typos in AI response
+    if "reason" in res:
+        res["reason"] = _correct_scientific_names(res["reason"])
+    if "treatment" in res:
+        res["treatment"] = _correct_scientific_names(res["treatment"])
 
     reason = res.get("reason", "").strip()
     if not reason:
@@ -200,11 +227,13 @@ RULES — follow strictly:
 3. Treatment MUST include:
    - Chemical name + formulation (e.g. Mancozeb 75WP, Copper Sulfate)
    - Exact dose: grams or ml per LITRE of water, AND per 20-litre tank
-   - Number of sprays + interval (e.g. "spray every 7-10 days for 3 cycles")
-   - Step-by-step numbered steps
+   - Spray TIMING: when to begin (e.g. "begin spraying early in season before symptoms")
+   - Alternative fungicide for rotation (e.g. Carbendazim 50WP or Chlorothalonil 75WP)
+   - Environmental advice: avoid overhead irrigation, ensure air circulation
+   - Correct scientific name of the pathogen (e.g. Venturia pyrina NOT pirina)
    - If Bordeaux Mixture: state "10g CuSO4 + 10g hydrated lime per litre of water"
 4. Fertilizer: exact product name + dose (not vague terms like "boost potassium")
-5. Reason: 1-2 sentences on the EXACT visual symptoms you see.
+5. Reason: use correct scientific name of pathogen. 1-2 sentences on exact visual symptoms.
 
 Return ONLY raw JSON (no markdown, no ```):
 {{"disease": "...", "confidence": 0.9, "treatment": "Step 1: ... Step 2: ...", "fertilizer": "...", "reason": "..."}}"""
@@ -232,6 +261,12 @@ Return ONLY raw JSON (no markdown, no ```):
     treatment = res.get("treatment", "")
     if len(treatment) < 30:
         treatment = db["treatment"]
+
+    # Fix scientific name typos in AI response
+    if "reason" in res:
+        res["reason"] = _correct_scientific_names(res["reason"])
+    if "treatment" in res:
+        res["treatment"] = _correct_scientific_names(res["treatment"])
 
     reason = res.get("reason", "").strip()
     if not reason:
