@@ -27,47 +27,69 @@ KINDWISE_URL = "https://crop.kindwise.com/api/v1/identification"
 DISEASE_DB = {
     "rust": {
         "treatment": "Step 1: Remove and burn all visibly infected leaves. Step 2: Mix Mancozeb 75WP at 2g per litre of water (e.g. 40g per 20L spray tank) and spray the entire crop. Step 3: Alternatively use Propiconazole 25EC at 1ml per litre. Step 4: Repeat spray every 10-14 days for 3 cycles. Step 5: Avoid wetting leaves during evening hours.",
-        "fertilizer": "Reduce Nitrogen (N) — stop urea temporarily. Apply Muriate of Potash (MOP/KCl) at 3kg per acre to harden cell walls and resist fungal spread."
+        "fertilizer": "Reduce Nitrogen (N) — stop urea temporarily. Apply Muriate of Potash (MOP/KCl) at 3kg per acre to harden cell walls and resist fungal spread.",
+        "safety": "Wear waterproof gloves and a face mask while mixing and spraying. Do NOT spray during strong sunlight (above 35°C) or high winds — spray early morning (6-9 AM) or evening (4-7 PM).",
+        "cost_estimate": "Mancozeb 75WP (500g pack) ≈ ₹120. Per 20L tank uses 40g ≈ ₹10/spray. For 3 sprays on 1 acre ≈ ₹250-350 total (chemical + minor labor)."
     },
     "blight": {
         "treatment": "Step 1: Uproot and destroy severely infected plants. Step 2: Spray Copper Oxychloride 50WP at 3g per litre of water (60g per 20L tank) covering both leaf surfaces. Step 3: Alternatively, use Metalaxyl 8% + Mancozeb 64WP at 2.5g per litre. Step 4: Repeat every 7 days until symptoms stop spreading. Step 5: Drain waterlogged fields immediately.",
-        "fertilizer": "Apply DAP (Di-Ammonium Phosphate) at 50kg per acre to boost root immunity. Avoid excess Nitrogen."
+        "fertilizer": "Apply DAP (Di-Ammonium Phosphate) at 50kg per acre to boost root immunity. Avoid excess Nitrogen.",
+        "safety": "Copper Oxychloride can irritate skin and eyes. Wear gloves, goggles, and a mask. Wash hands thoroughly after spraying. Do not spray in windy or sunny conditions.",
+        "cost_estimate": "Copper Oxychloride 50WP (500g) ≈ ₹150. Per 20L tank uses 60g ≈ ₹18/spray. For 4 sprays on 1 acre ≈ ₹400-500 total."
     },
     "smut": {
         "treatment": "PREVENTION (before planting): Treat seeds with Carboxin 37.5% + Thiram 37.5% at 2g per kg of seed. Rub the powder evenly on the seed surface. AFTER INFECTION: Remove all smut galls immediately before they burst open (to stop spore spread). There is NO chemical cure once infection is established — remove infected plants.",
-        "fertilizer": "Apply Zinc Sulfate at 25kg per hectare to improve plant immunity and reduce susceptibility."
+        "fertilizer": "Apply Zinc Sulfate at 25kg per hectare to improve plant immunity and reduce susceptibility.",
+        "safety": "Carboxin + Thiram seed treatment: Wear gloves and mask during seed treatment. Wash hands before eating. Treated seeds should not be consumed by humans or animals.",
+        "cost_estimate": "Carboxin+Thiram 37.5+37.5WP (100g) ≈ ₹80. Treats up to 50kg of seed ≈ ₹1.50 per kg of seed treated. Very cost-effective preventive measure."
     },
     "mosaic": {
         "treatment": "There is NO chemical cure for mosaic virus. Step 1: Immediately uproot and burn infected plants — do not compost them. Step 2: Control aphid/whitefly vectors by spraying Imidacloprid 17.8SL at 0.5ml per litre of water. Step 3: Use yellow sticky traps @10 per acre. Step 4: Plant virus-resistant varieties in next season.",
-        "fertilizer": "Spray Borax (Boron) at 0.5g per litre as foliar spray to strengthen cell walls and slow virus movement."
+        "fertilizer": "Spray Borax (Boron) at 0.5g per litre as foliar spray to strengthen cell walls and slow virus movement.",
+        "safety": "Imidacloprid is toxic to bees — do NOT spray near flowering crops or during bloom. Wear gloves and mask. Avoid spraying near water sources.",
+        "cost_estimate": "Imidacloprid 17.8SL (100ml) ≈ ₹180. Per 20L tank uses 10ml ≈ ₹18/spray. Yellow sticky traps (pack of 10) ≈ ₹150. Total management for 1 acre ≈ ₹400-600."
     },
     "wilt": {
         "treatment": "Step 1: Remove wilted plants with roots and destroy. Step 2: Drench the root zone with Carbendazim 50WP at 1g per litre of water (apply 200-250ml per plant). Step 3: Alternatively, apply Trichoderma viride or T. harzianum bio-fungicide at 4g per kg soil at planting. Step 4: Avoid waterlogging — ensure proper field drainage.",
-        "fertilizer": "Apply Calcium Nitrate at 2kg per 100L water as soil drench to strengthen root cell walls."
+        "fertilizer": "Apply Calcium Nitrate at 2kg per 100L water as soil drench to strengthen root cell walls.",
+        "safety": "Carbendazim soil drench: wear gloves. Trichoderma is safe (biological agent) but still avoid eye contact. Wash hands after application.",
+        "cost_estimate": "Carbendazim 50WP (250g) ≈ ₹90. Per plant drench uses ~0.25g ≈ ₹0.09 per plant. For 1 acre (~500 plants) ≈ ₹200. Trichoderma viride (1kg) ≈ ₹120 for season."
     },
     "rot": {
         "treatment": "Step 1: Cut away and dispose of all rotten tissue. Step 2: Drench with Copper Oxychloride 50WP at 3g per litre or Mancozeb at 2g per litre, applied directly to the affected area and soil. Step 3: Reduce irrigation frequency. Step 4: Improve field drainage — create furrows to allow water run-off. Step 5: Spray Iprodione 50WP at 2g per litre on stored produce.",
-        "fertilizer": "Apply Superphosphate (SSP) at 50kg per acre to strengthen root tissue."
+        "fertilizer": "Apply Superphosphate (SSP) at 50kg per acre to strengthen root tissue.",
+        "safety": "Wear gloves and avoid inhaling Mancozeb dust. Spray early morning. Keep children and animals away during and after spraying for at least 2 hours.",
+        "cost_estimate": "Mancozeb 75WP (500g) ≈ ₹120. Per 20L tank ≈ ₹10/spray. For 4 sprays on 1 acre ≈ ₹300-400 total chemical cost."
     },
     "spot": {
         "treatment": "Step 1: Remove and burn spotted leaves. Step 2: Spray Chlorothalonil 75WP at 2g per litre of water (40g per 20L tank) covering leaf undersides thoroughly. Step 3: Or use Mancozeb 75WP at 2g per litre. Step 4: Repeat every 14 days for 2-3 applications. Step 5: Avoid overhead irrigation to keep leaves dry.",
-        "fertilizer": "Foliar spray of Zinc Sulfate (0.5g/L) + Manganese Sulfate (0.3g/L) to boost plant immunity."
+        "fertilizer": "Foliar spray of Zinc Sulfate (0.5g/L) + Manganese Sulfate (0.3g/L) to boost plant immunity.",
+        "safety": "Chlorothalonil: wear gloves, goggles, and mask — it is a mild eye irritant. Avoid spraying in windy conditions. Do not spray during peak sunlight hours.",
+        "cost_estimate": "Chlorothalonil 75WP (500g) ≈ ₹200. Per 20L tank uses 40g ≈ ₹16/spray. For 3 sprays on 1 acre ≈ ₹350-450 total."
     },
     "mildew": {
         "treatment": "Step 1: Remove heavily infected leaves. Step 2: Spray Wettable Sulfur 80WP at 3g per litre (60g per 20L tank) or Azoxystrobin 23SC at 1ml per litre. Step 3: Do NOT spray sulfur when temperature exceeds 35°C (risk of phytotoxicity). Step 4: Repeat every 10 days for 3 sprays. Step 5: Improve air circulation by pruning dense canopy.",
-        "fertilizer": "Stop all Nitrogen (urea) fertilizer. Apply Potassium Silicate at 2ml per litre as foliar spray to harden leaf surfaces."
+        "fertilizer": "Stop all Nitrogen (urea) fertilizer. Apply Potassium Silicate at 2ml per litre as foliar spray to harden leaf surfaces.",
+        "safety": "Wettable Sulfur is phytotoxic above 35°C — NEVER spray sulfur in hot weather. Wear gloves and mask. Azoxystrobin: avoid contact with skin and eyes.",
+        "cost_estimate": "Wettable Sulfur 80WP (1kg) ≈ ₹100. Per 20L tank uses 60g ≈ ₹6/spray. Azoxystrobin 23SC (100ml) ≈ ₹350. For 3 sulfur sprays on 1 acre ≈ ₹150-250 total."
     },
     "scorch": {
         "treatment": "Step 1: This is often caused by the fungus Fabraea maculata or environmental stress. Step 2: Spray Bordeaux Mixture 1% (10g Copper Sulfate CuSO₄ + 10g hydrated lime per litre of water) — mix CuSO₄ in half the water, mix lime separately in other half, then combine slowly). Step 3: Spray every 7-10 days for 3 cycles. Step 4: Remove and burn infected leaves. Step 5: Ensure proper irrigation — avoid drought stress.",
-        "fertilizer": "Apply Calcium Nitrate at 200g per 100L water as foliar spray to strengthen leaf tissue and prevent further scorch."
+        "fertilizer": "Apply Calcium Nitrate at 200g per 100L water as foliar spray to strengthen leaf tissue and prevent further scorch.",
+        "safety": "Bordeaux Mixture: CuSO₄ is corrosive — wear rubber gloves and goggles. Never use iron or galvanized containers to mix. Spray early morning (6-9 AM) or evening.",
+        "cost_estimate": "Copper Sulfate (CuSO₄) 1kg ≈ ₹200, Lime 1kg ≈ ₹20. Per 20L tank: 200g CuSO₄ + 200g lime ≈ ₹44/spray. For 3 sprays on 1 acre ≈ ₹500-700 total."
     },
     "anthracnose": {
         "treatment": "Step 1: Collect and destroy all fallen infected leaves and fruit. Step 2: Spray Carbendazim 50WP at 1g per litre (20g per 20L tank) or Copper Hydroxide 77WP at 2g per litre. Step 3: Repeat every 10-14 days. Step 4: Avoid overhead irrigation. Step 5: Disinfect pruning tools with 10% bleach solution between cuts.",
-        "fertilizer": "Apply NPK 13-0-45 (high potassium) at 2g per litre as foliar spray. Add Calcium Chloride 0.5g/L."
+        "fertilizer": "Apply NPK 13-0-45 (high potassium) at 2g per litre as foliar spray. Add Calcium Chloride 0.5g/L.",
+        "safety": "Carbendazim is a mild systemic fungicide — wear gloves. Copper Hydroxide: avoid eye contact, wear goggles. Do not spray near water bodies. Spray early morning only.",
+        "cost_estimate": "Carbendazim 50WP (250g) ≈ ₹90. Per 20L tank ≈ ₹9/spray. Copper Hydroxide 77WP (500g) ≈ ₹200. For 3-4 sprays on 1 acre ≈ ₹300-500 total."
     },
     "canker": {
         "treatment": "Step 1: Prune infected branches at least 15cm below the visible infection point. Step 2: Immediately paint cut surfaces with Bordeaux paste (100g CuSO₄ + 100g lime in 1 litre water, thickened to paste). Step 3: Spray entire tree with Copper Oxychloride 50WP at 3g per litre. Step 4: Sterilize pruning tools between each cut using 70% alcohol or 10% bleach.",
-        "fertilizer": "Apply Calcium (Ca) at 2g/L + Boron (B) at 0.5g/L as foliar spray to prevent cell wall breakdown."
+        "fertilizer": "Apply Calcium (Ca) at 2g/L + Boron (B) at 0.5g/L as foliar spray to prevent cell wall breakdown.",
+        "safety": "Sterilize pruning tools between cuts (70% alcohol). Wear gloves when handling Bordeaux paste — CuSO₄ irritates skin. Dispose of pruned material by burning, not composting.",
+        "cost_estimate": "Copper Sulfate (500g) ≈ ₹100, Lime ≈ ₹10. Pruning cost depends on tree count. Chemical cost for paste + 2 sprays on 10 trees ≈ ₹200-300 total."
     },
     "bordeaux": {
         "treatment": "Bordeaux Mixture 1% preparation: Dissolve 10g of Copper Sulfate (CuSO₄) in 500ml water. Separately dissolve 10g of hydrated lime in another 500ml of water. Slowly pour the CuSO₄ solution into the lime solution (never the reverse). Test with litmus — should be neutral or slightly alkaline. Apply 1-2 litres per tree, spray every 7-10 days.",
@@ -75,19 +97,27 @@ DISEASE_DB = {
     },
     "scab": {
         "treatment": "Step 1: Start spraying EARLY in the growing season, even before symptoms appear (weather-driven disease — spreads in wet/humid conditions). Step 2: Spray Mancozeb 75WP at 2g per litre (40g per 20L tank) every 7-10 days for 3-4 cycles. Step 3: Alternative fungicides — Carbendazim 50WP at 1g/L OR Chlorothalonil 75WP at 2g/L (rotate to prevent resistance). Step 4: Remove and burn all infected leaves and fallen fruit. Step 5: Avoid overhead irrigation to keep leaves dry. Step 6: Prune to improve air circulation inside the canopy.",
-        "fertilizer": "Apply Calcium Nitrate at 200g per 100L water as foliar spray to strengthen leaf tissue. Avoid excess Nitrogen which increases susceptibility."
+        "fertilizer": "Apply Calcium Nitrate at 200g per 100L water as foliar spray to strengthen leaf tissue. Avoid excess Nitrogen which increases susceptibility.",
+        "safety": "Wear gloves and face mask when mixing fungicides. Spray early morning (6-9 AM) or evening (4-7 PM) — avoid spraying during strong sunlight or high winds. Keep spray away from eyes.",
+        "cost_estimate": "Mancozeb 75WP (500g) ≈ ₹120. Per 20L tank uses 40g ≈ ₹10/spray. Carbendazim 50WP (250g) ≈ ₹90. For full season (4 sprays alternating) on 1 acre ≈ ₹350-500 total."
     },
     "healthy": {
         "treatment": "No treatment needed. Crop appears in good health. Continue regular monitoring every 5-7 days. Maintain standard cultural practices (proper spacing, timely irrigation, weed management).",
-        "fertilizer": "Continue your existing NPK schedule based on soil test results. As a preventive boost, apply NPK 19-19-19 at 2g per litre as foliar spray once a month."
+        "fertilizer": "Continue your existing NPK schedule based on soil test results. As a preventive boost, apply NPK 19-19-19 at 2g per litre as foliar spray once a month.",
+        "safety": "Crop looks healthy — spraying not needed. If applying preventive foliar NPK, wear gloves and spray in early morning. Avoid fertilizer spray in high winds.",
+        "cost_estimate": "No disease treatment cost. Preventive NPK 19-19-19 (1kg) ≈ ₹80. Per acre foliar spray monthly ≈ ₹40-60/month."
     },
     "deficiency": {
         "treatment": "Iron deficiency (yellowing between veins): Spray Ferrous Sulfate at 2.5g per litre. Zinc deficiency (small leaves, bronzing): Spray Zinc Sulfate at 2g per litre. Magnesium deficiency (older leaves yellow first): Spray Magnesium Sulfate (Epsom salt) at 10g per litre. Apply foliar spray in the morning or evening, not in harsh sunlight.",
-        "fertilizer": "Conduct full soil test to identify deficient nutrients. As interim measure: apply micronutrient mixture (Zn, Fe, Mn, Cu, B) at label dose."
+        "fertilizer": "Conduct full soil test to identify deficient nutrients. As interim measure: apply micronutrient mixture (Zn, Fe, Mn, Cu, B) at label dose.",
+        "safety": "Wear gloves when handling concentrated fertilizer solutions. Ferrous Sulfate can stain clothing. Apply micronutrient sprays early morning to prevent leaf burn.",
+        "cost_estimate": "Ferrous Sulfate (1kg) ≈ ₹30. Zinc Sulfate (1kg) ≈ ₹60. Magnesium Sulfate (1kg) ≈ ₹40. Per acre foliar spray (2-3 sprays) ≈ ₹100-200 total."
     },
     "default": {
         "treatment": "Symptoms not conclusively matched. As a precaution: Step 1: Remove visibly infected leaves and destroy. Step 2: Spray broad-spectrum fungicide Mancozeb 75WP at 2g per litre of water. Step 3: Observe the crop for 5-7 days. Step 4: If no improvement, consult your local Krishi Vigyan Kendra (KVK) or agricultural extension officer with a sample.",
-        "fertilizer": "Apply NPK 15-15-15 complex fertilizer at 2g per litre as a general health booster foliar spray."
+        "fertilizer": "Apply NPK 15-15-15 complex fertilizer at 2g per litre as a general health booster foliar spray.",
+        "safety": "Wear gloves and a face mask when mixing and spraying any pesticide. Spray early morning (6-9 AM) or evening (4-7 PM). Keep children and animals away from the sprayed area for at least 4 hours.",
+        "cost_estimate": "Mancozeb 75WP (500g) ≈ ₹120. Estimated cost for 2-3 precautionary sprays on 1 acre ≈ ₹200-350 total. Consult local agro-dealer for current market prices."
     },
 }
 
@@ -236,7 +266,7 @@ RULES — follow strictly:
 5. Reason: use correct scientific name of pathogen. 1-2 sentences on exact visual symptoms.
 
 Return ONLY raw JSON (no markdown, no ```):
-{{"disease": "...", "confidence": 0.9, "treatment": "Step 1: ... Step 2: ...", "fertilizer": "...", "reason": "..."}}"""
+{{"disease": "...", "confidence": 0.9, "treatment": "Step 1: ... Step 2: ...", "fertilizer": "...", "safety": "Wear gloves. Spray early morning/evening. Avoid sunlight and wind.", "cost_estimate": "Chemical (pack size) ≈ ₹XX. Per spray ≈ ₹XX. Full treatment for 1 acre ≈ ₹XXX.", "reason": "..."}}"""
 
     payload = {
         "model": GROQ_MODEL,
