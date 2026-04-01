@@ -14,7 +14,7 @@ load_dotenv()
 # API URLs for orchestration
 # API URLs for orchestration
 # API URLs for orchestration
-GEMINI_URL   = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+GEMINI_URL   = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
 GROQ_URL     = "https://api.groq.com/openai/v1/chat/completions"
 # Groq decommissioned 11b-preview. Using latest stable 90b vision for precision.
 GROQ_MODEL   = "llama-3.2-90b-vision-preview"
@@ -155,6 +155,16 @@ def _parse_json_safely(text: str) -> dict:
             pass
     raise ValueError("No valid JSON found in response")
 
+def _safe_float(val, default=0.0) -> float:
+    """Safely convert value to float, handling NaN and strings."""
+    try:
+        if val is None: return default
+        f = float(val)
+        if np.isnan(f) or np.isinf(f): return default
+        return f
+    except:
+        return default
+
 def _correct_scientific_names(text: str) -> str:
     """Fix common AI scientific name typos."""
     corrections = {
@@ -219,9 +229,9 @@ def _gemini_predict(api_key: str, image_bytes: bytes, crop: str) -> dict:
     }
     # AUTO-DISCOVERY: Try multiple Gemini versions and endpoints
     endpoints = [
-        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}",
-        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={api_key}",
-        f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key={api_key}"
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}",
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}",
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={api_key}"
     ]
     
     r = None
@@ -248,14 +258,14 @@ def _gemini_predict(api_key: str, image_bytes: bytes, crop: str) -> dict:
 
     return {
         "disease": res_disease,
-        "confidence": float(res.get("confidence", 0.93)),
+        "confidence": _safe_float(res.get("confidence"), 0.93),
         "severity": res.get("severity", "Medium"),
         "treatment": treatment,
         "fertilizer": res.get("fertilizer") or db["fertilizer"],
         "safety": res.get("safety") or db.get("safety", "Wear gloves and avoid sunlight/wind."),
         "cost_estimate": res.get("cost_estimate") or db.get("cost_estimate", "Consult local rates."),
         "reason": res.get("reason", "Visual analysis report.") or f"AI identified {res_disease}.",
-        "method": "Gemini 1.5 Flash Expert"
+        "method": "Gemini 2.5 Flash Expert"
     }
 
 # ---------------------------------------------------------------------------
@@ -292,7 +302,7 @@ def _groq_predict(api_key: str, image_bytes: bytes, crop: str) -> dict:
     for m in models:
         payload["model"] = m
         try:
-            r = requests.post(GROQ_URL, json=payload, headers={"Authorization": f"Bearer {api_key}"}, timeout=25)
+            r = requests.post(GROQ_URL, json=payload, headers={"Authorization": f"Bearer {api_key}"}, timeout=40)
             if r.status_code == 200: break
         except: continue
 
@@ -302,7 +312,7 @@ def _groq_predict(api_key: str, image_bytes: bytes, crop: str) -> dict:
         if status == 400:
             payload["model"] = "llama-3.3-70b-versatile"
             payload["messages"][0]["content"] = expert_prompt
-            r = requests.post(GROQ_URL, json=payload, headers={"Authorization": f"Bearer {api_key}"}, timeout=15)
+            r = requests.post(GROQ_URL, json=payload, headers={"Authorization": f"Bearer {api_key}"}, timeout=25)
             if r.status_code == 200:
                  # It's a text-only identification now
                  pass 
@@ -333,7 +343,7 @@ def _groq_predict(api_key: str, image_bytes: bytes, crop: str) -> dict:
 
     return {
         "disease": res_disease,
-        "confidence": float(res.get("confidence", 0.88)),
+        "confidence": _safe_float(res.get("confidence"), 0.88),
         "severity": res.get("severity", "Medium"),
         "treatment": treatment,
         "fertilizer": res.get("fertilizer") or db["fertilizer"],
@@ -359,7 +369,9 @@ def _kindwise_predict(api_key: str, image_bytes: bytes) -> dict:
         "similar_images": True
     }
 
-    r = requests.post(KINDWISE_URL, json=payload, headers=headers, timeout=15)
+    r = requests.post(KINDWISE_URL, json=payload, headers=headers, timeout=20)
+    if r.status_code == 401:
+        raise Exception(f"K-Unauthorized (Invalid Key)")
     if r.status_code not in [200, 201]:
         raise Exception(f"K-{r.status_code}")
 
@@ -374,7 +386,7 @@ def _kindwise_predict(api_key: str, image_bytes: bytes) -> dict:
 
     top = suggestions[0]
     disease_name = top.get("name", "Unknown Disease").title()
-    prob = float(top.get("probability", 0.8))
+    prob = _safe_float(top.get("probability"), 0.8)
 
     db = _get_treatment_from_db(disease_name)
     details = top.get("details", {})
@@ -440,7 +452,7 @@ def _nvidia_predict(api_key: str, image_bytes: bytes, crop: str) -> dict:
     for m in models:
         payload["model"] = m
         try:
-            r = requests.post(NVIDIA_URL, json=payload, headers={"Authorization": f"Bearer {api_key}"}, timeout=25)
+            r = requests.post(NVIDIA_URL, json=payload, headers={"Authorization": f"Bearer {api_key}"}, timeout=40)
             if r.status_code == 200: break
         except: continue
 
@@ -461,7 +473,7 @@ def _nvidia_predict(api_key: str, image_bytes: bytes, crop: str) -> dict:
 
     return {
         "disease": res_disease,
-        "confidence": float(res.get("confidence", 0.95)),
+        "confidence": _safe_float(res.get("confidence"), 0.95),
         "severity": res.get("severity", "Medium"),
         "treatment": treatment,
         "fertilizer": db["fertilizer"],
@@ -525,8 +537,10 @@ def _expert_fallback(image_bytes: bytes, crop: str, errors: list = None) -> dict
     # 1. Healthy Ripening/Maturity (Golden hue) - More robust wheat head detection
     # If it's very golden and doesn't have a broad rust spike, it's mature.
     if gold_pct > 0.15 and rust_pct < 0.04:
+        db = DISEASE_DB["healthy"]
         return {"disease": "Healthy — Natural Maturity / Ripening", "confidence": 0.96, "severity": "Healthy",
                 "treatment": "No disease detected. This golden color is the natural ripening transition.",
+                "fertilizer": db["fertilizer"], "safety": db["safety"], "cost_estimate": db["cost_estimate"],
                 "reason": f"Ripening Analysis: High golden hue frequency ({gold_pct*100:.1f}%) detected. This matches healthy grain maturation.",
                 "method": "Neural Fallback (Pixel Precision)"}
 
@@ -536,6 +550,7 @@ def _expert_fallback(image_bytes: bytes, crop: str, errors: list = None) -> dict
         sev = "High" if (rust_pct + dark_pct) > 0.12 else "Medium"
         return {"disease": "Foliar Rust / Fungal Lesions", "confidence": 0.85, "severity": sev,
                 "treatment": db["treatment"], "fertilizer": db["fertilizer"],
+                "safety": db["safety"], "cost_estimate": db["cost_estimate"],
                 "reason": f"Detected {rust_pct*100:.1f}% active fungal signature (spots/lesions) and {dark_pct*100:.1f}% necrotic tissue. {err_tag}",
                 "method": "Neural Fallback"}
 
@@ -544,12 +559,14 @@ def _expert_fallback(image_bytes: bytes, crop: str, errors: list = None) -> dict
         db = DISEASE_DB["healthy"]
         return {"disease": "Healthy", "confidence": 0.88, "severity": "Healthy",
                 "treatment": db["treatment"], "fertilizer": db["fertilizer"],
+                "safety": db["safety"], "cost_estimate": db["cost_estimate"],
                 "reason": f"High vegetative health: {green_pct*100:.1f}% green coverage. No significant pathogen patterns found. {err_tag}",
                 "method": "Neural Fallback"}
 
     db = DISEASE_DB["default"]
     return {"disease": "Inconclusive / Healthy", "confidence": 0.60, "severity": "Unknown",
             "treatment": f"No definitive symptoms found. {db['treatment']}",
+            "fertilizer": db["fertilizer"], "safety": db["safety"], "cost_estimate": db["cost_estimate"],
             "reason": "Image analysis returned mostly healthy or natural ripening signals.",
             "method": "Neural Fallback"}
 
@@ -673,7 +690,17 @@ def predict_disease_multiple(image_list: list, crop: str = None, lat: float = No
             res = predict_disease_from_image(img_bytes, crop=crop, lat=lat, lng=lng)
             results.append(res)
         except Exception:
-            results.append({"disease": "Unreadable", "confidence": 0.0})
+            db = DISEASE_DB["default"]
+            results.append({
+                "disease": "Unreadable Image", 
+                "confidence": 0.0, 
+                "severity": "N/A",
+                "treatment": db["treatment"],
+                "fertilizer": db["fertilizer"],
+                "safety": db["safety"],
+                "cost_estimate": db["cost_estimate"],
+                "method": "System Check"
+            })
 
     # 1. Advanced Normalization Helper
     def normalize(name):
@@ -698,7 +725,7 @@ def predict_disease_multiple(image_list: list, crop: str = None, lat: float = No
         weight = 3.0 if "Groq" in method else 1.0
         if "Gemini" in method: weight = 1.5
         
-        conf = r.get("confidence", 0.4) * weight
+        conf = _safe_float(r.get("confidence"), 0.4) * weight
         scores[norm_name] = scores.get(norm_name, 0) + conf
         
         # TRACK PRIMARY EXPERT SIGNAL

@@ -12,10 +12,11 @@ NVIDIA_KEYS   = [k.strip() for k in os.getenv("NVIDIA_API_KEY", "").split(",") i
 
 def verify_gemini():
     if not GEMINI_KEYS: return "MISSING KEY"
-    # Try multiple standard endpoints
+    # Try multiple standard endpoints for 2026 fleet (Gemini 2.5)
     endpoints = [
-        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={GEMINI_KEYS[0]}",
-        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_KEYS[0]}"
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_KEYS[0]}",
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_KEYS[0]}",
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={GEMINI_KEYS[0]}"
     ]
     for url in endpoints:
         try:
@@ -49,8 +50,18 @@ def verify_local_intelligence():
         return "SUCCESS (Operational)"
     except Exception as e: return f"FAILED ({str(e)[:40]})"
 
+def verify_kindwise():
+    if not KINDWISE_KEY: return "MISSING KEY"
+    headers = {"Api-Key": KINDWISE_KEY, "Content-Type": "application/json"}
+    try:
+        r = requests.post("https://crop.kindwise.com/api/v1/identification", json={"images": ["data:image/jpeg;base64,"]}, headers=headers, timeout=10)
+        # We expect a 400 because image is empty, but 401 means key is bad
+        if r.status_code == 401: return "FAILED (401 Unauthorized - Key Invalid)"
+        return f"SUCCESS (Status {r.status_code})"
+    except Exception as e: return f"Error: {str(e)[:40]}"
+
 print("--- FarmAI PRODUCTION READINESS REPORT ---")
-print(f"1. KINDWISE : (Status 201 - Cached)")
+print(f"1. KINDWISE : {verify_kindwise()}")
 print(f"2. GEMINI   : {verify_gemini()}")
 print(f"3. GROQ     : {verify_groq()}")
 print(f"4. NVIDIA   : {verify_nvidia()}")
