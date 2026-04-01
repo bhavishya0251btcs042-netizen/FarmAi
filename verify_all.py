@@ -12,11 +12,17 @@ NVIDIA_KEYS   = [k.strip() for k in os.getenv("NVIDIA_API_KEY", "").split(",") i
 
 def verify_gemini():
     if not GEMINI_KEYS: return "MISSING KEY"
-    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={GEMINI_KEYS[0]}"
-    try:
-        r = requests.post(url, json={"contents": [{"parts": [{"text": "Hello"}]}]}, timeout=15)
-        return f"({r.status_code}, {r.reason})"
-    except Exception as e: return f"Error: {str(e)[:40]}"
+    # Try multiple standard endpoints
+    endpoints = [
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={GEMINI_KEYS[0]}",
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_KEYS[0]}"
+    ]
+    for url in endpoints:
+        try:
+            r = requests.post(url, json={"contents": [{"parts": [{"text": "Hello"}]}]}, timeout=15)
+            if r.status_code == 200: return f"SUCCESS (Status 200)"
+        except: continue
+    return "FAILED (All Endpoints 404/Error)"
 
 def verify_groq():
     if not GROQ_KEYS: return "MISSING KEY"

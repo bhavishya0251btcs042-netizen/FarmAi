@@ -196,6 +196,7 @@ def _gemini_predict(api_key: str, image_bytes: bytes, crop: str) -> dict:
        - ANTHERS: Small orange/yellow tips on wheat heads are natural flowering, not rust.
     2. MAIZE VALIDATION: Tassels at the top are healthy. Boat-shaped lesions = Blight.
     3. FINAL DECISION: If natural patterns are dominant, you MUST report "Healthy".
+    4. SYSTEM DIRECTIVE: If the image is not a plant or is unreadable, report "Inconclusive - Low Visibility". NEVER return "None" as a scientific name.
     
     Return ONLY a JSON object:
     {{
@@ -218,8 +219,8 @@ def _gemini_predict(api_key: str, image_bytes: bytes, crop: str) -> dict:
     }
     # AUTO-DISCOVERY: Try multiple Gemini versions and endpoints
     endpoints = [
-        f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={api_key}",
         f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}",
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={api_key}",
         f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key={api_key}"
     ]
     
@@ -236,31 +237,24 @@ def _gemini_predict(api_key: str, image_bytes: bytes, crop: str) -> dict:
     txt = r.json()["candidates"][0]["content"]["parts"][0]["text"]
     res = _parse_json_safely(txt)
 
-    # Enrich treatment from DB if AI gives vague response
-    db = _get_treatment_from_db(res.get("disease", ""))
+    # SANITIZE RESULT
+    res_disease = res.get("disease", "Healthy")
+    if str(res_disease).lower() in ["none", "null", "unknown"]: res_disease = "Healthy"
+    
+    db = _get_treatment_from_db(res_disease)
     treatment = res.get("treatment", "")
-    if len(treatment) < 30:  # if too short/vague, use DB
+    if not treatment or len(str(treatment)) < 30 or str(treatment).lower() == "none":
         treatment = db["treatment"]
 
-    # Fix scientific name typos in AI response
-    if "reason" in res:
-        res["reason"] = _correct_scientific_names(res["reason"])
-    if "treatment" in res:
-        res["treatment"] = _correct_scientific_names(res["treatment"])
-
-    reason = res.get("reason", "").strip()
-    if not reason:
-        reason = f"AI identified {res['disease']} based on visual pattern analysis of the submitted image."
-
     return {
-        "disease": res["disease"],
+        "disease": res_disease,
         "confidence": float(res.get("confidence", 0.93)),
         "severity": res.get("severity", "Medium"),
         "treatment": treatment,
         "fertilizer": res.get("fertilizer") or db["fertilizer"],
         "safety": res.get("safety") or db.get("safety", "Wear gloves and avoid sunlight/wind."),
         "cost_estimate": res.get("cost_estimate") or db.get("cost_estimate", "Consult local rates."),
-        "reason": reason,
+        "reason": res.get("reason", "Visual analysis report.") or f"AI identified {res_disease}.",
         "method": "Gemini 1.5 Flash Expert"
     }
 
@@ -318,9 +312,13 @@ def _groq_predict(api_key: str, image_bytes: bytes, crop: str) -> dict:
     txt = r.json()["choices"][0]["message"]["content"]
     res = _parse_json_safely(txt)
 
-    db = _get_treatment_from_db(res.get("disease", ""))
+    # SANITIZE RESULT
+    res_disease = res.get("disease", "Healthy")
+    if str(res_disease).lower() in ["none", "null", "unknown"]: res_disease = "Healthy"
+
+    db = _get_treatment_from_db(res_disease)
     treatment = res.get("treatment", "")
-    if len(treatment) < 30:
+    if not treatment or len(str(treatment)) < 30 or str(treatment).lower() == "none":
         treatment = db["treatment"]
 
     # Fix scientific name typos in AI response
@@ -331,10 +329,10 @@ def _groq_predict(api_key: str, image_bytes: bytes, crop: str) -> dict:
 
     reason = res.get("reason", "").strip()
     if not reason:
-        reason = f"AI detected {res['disease']} based on visual symptom analysis of the crop image."
+        reason = f"AI detected {res_disease} based on visual symptom analysis of the crop image."
 
     return {
-        "disease": res["disease"],
+        "disease": res_disease,
         "confidence": float(res.get("confidence", 0.88)),
         "severity": res.get("severity", "Medium"),
         "treatment": treatment,
@@ -412,9 +410,17 @@ def _nvidia_predict(api_key: str, image_bytes: bytes, crop: str) -> dict:
     - Check for specific fungal structures (pustules, hyphae, necrosis).
     - Distinguish between nutritional deficiency and pathogen infection.
     - If it's a wheat head, look for bleaching (scab) vs healthy maturation.
+    - If no disease is present, report "Healthy".
+    - If the image is not a plant, report "Inconclusive".
     
     Return ONLY JSON:
-    {{"disease": "Precise Name", "confidence": 0.98, "severity": "...", "treatment": "...", "reason": "Detailed pathological evidence."}}"""
+    {{
+      "disease": "Scientific + Common Name", 
+      "confidence": 0.98, 
+      "severity": "Low/Medium/High/Healthy", 
+      "treatment": "Precise Chemical + Dosage", 
+      "reason": "Detailed pathological evidence."
+    }}"""
 
     payload = {
         "model": "nvidia/vila", # VILA is the most reliable vision model on NIM
@@ -444,13 +450,20 @@ def _nvidia_predict(api_key: str, image_bytes: bytes, crop: str) -> dict:
     txt = r.json()["choices"][0]["message"]["content"]
     res = _parse_json_safely(txt)
 
-    db = _get_treatment_from_db(res.get("disease", ""))
-    
+    # SANITIZE RESULT
+    res_disease = res.get("disease", "Inconclusive")
+    if str(res_disease).lower() in ["none", "null", "unknown"]: res_disease = "Inconclusive"
+
+    db = _get_treatment_from_db(res_disease)
+    treatment = res.get("treatment", "")
+    if not treatment or str(treatment).lower() == "none":
+        treatment = db["treatment"]
+
     return {
-        "disease": res["disease"],
+        "disease": res_disease,
         "confidence": float(res.get("confidence", 0.95)),
         "severity": res.get("severity", "Medium"),
-        "treatment": res.get("treatment") or db["treatment"],
+        "treatment": treatment,
         "fertilizer": db["fertilizer"],
         "safety": db.get("safety", "Follow ICAR safety standards."),
         "cost_estimate": db.get("cost_estimate", "Consult local rates."),
