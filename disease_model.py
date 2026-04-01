@@ -11,9 +11,9 @@ SERVER_VERSION = "v7.9-Expert-Consensus-Pear-Optimized"
 
 load_dotenv()
 
-GEMINI_URL   = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent"
+GEMINI_URL   = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
 GROQ_URL     = "https://api.groq.com/openai/v1/chat/completions"
-GROQ_MODEL   = "llama-3.2-90b-vision-preview"
+GROQ_MODEL   = "llama-3.2-11b-vision-preview"
 KINDWISE_URL = "https://crop.kindwise.com/api/v1/identification"
 NVIDIA_URL   = "https://integrate.api.nvidia.com/v1/chat/completions"
 
@@ -96,8 +96,8 @@ def _gemini_predict(api_key: str, image_bytes: bytes, crop: str) -> dict:
     expert_prompt = f"Plant Pathologist Scan for {crop or 'crop'}. If you see Bright Orange/Yellow spots, it is likely RUST. return JSON: disease, confidence, severity, treatment, reason."
     b = {"contents": [{"parts": [{"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(image_bytes).decode("utf-8")}}, {"text": expert_prompt}]}], "generationConfig": {"temperature": 0.1}}
     endpoints = [
-        f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={api_key}",
-        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}",
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key={api_key}"
     ]
     r = None
     for url in endpoints:

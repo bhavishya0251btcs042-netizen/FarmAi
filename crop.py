@@ -714,8 +714,8 @@ If it IS related, analyze the image from an agricultural perspective. Identify:
 Be specific and practical."""
 
         try:
-            # Use stable v1 endpoint
-            url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={active_gemini_key}"
+            # Use stable v1beta endpoint
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={active_gemini_key}"
             resp = http_requests.post(
                 url,
                 json={"contents": [{"parts": [{"text": prompt}, {"inline_data": {"mime_type": mime, "data": b64}}]}],
