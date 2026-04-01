@@ -13,7 +13,7 @@ load_dotenv()
 
 GEMINI_URL   = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent"
 GROQ_URL     = "https://api.groq.com/openai/v1/chat/completions"
-GROQ_MODEL   = "meta-llama/llama-4-scout-17b-16e-instruct"
+GROQ_MODEL   = "llama-3.2-90b-vision-preview"
 KINDWISE_URL = "https://crop.kindwise.com/api/v1/identification"
 NVIDIA_URL   = "https://integrate.api.nvidia.com/v1/chat/completions"
 
@@ -135,7 +135,7 @@ def _groq_predict(api_key: str, image_bytes: bytes, crop: str) -> dict:
 def _nvidia_predict(api_key: str, image_bytes: bytes, crop: str) -> dict:
     if not api_key: raise ValueError("N-Missing")
     expert_prompt = f"Morphological Pathologist Scan. Identify disease in {crop}. Return JSON only."
-    payload = {"model": "meta/llama-3.2-11b-vision-instruct", "messages": [{"role": "user", "content": [{"type": "text", "text": expert_prompt}, {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64.b64encode(image_bytes).decode('utf-8')}"}}]}], "temperature": 0.1}
+    payload = {"model": "nvidia/llama-3.2-11b-vision-instruct", "messages": [{"role": "user", "content": [{"type": "text", "text": expert_prompt}, {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64.b64encode(image_bytes).decode('utf-8')}"}}]}], "temperature": 0.1}
     r = requests.post(NVIDIA_URL, json=payload, headers={"Authorization": f"Bearer {api_key}"}, timeout=60)
     if r.status_code != 200: raise Exception(f"N-{r.status_code}")
     res = _parse_json_safely(r.json()["choices"][0]["message"]["content"])

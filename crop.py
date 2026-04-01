@@ -89,7 +89,7 @@ def train_and_persist_model():
     feature_cols = ["N", "P", "K", "temperature", "humidity", "ph", "rainfall"]
     X, y = df[feature_cols], df["label"]
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    m = RandomForestClassifier(n_estimators=100, random_state=42)
+    m = RandomForestClassifier(n_estimators=30, max_depth=10, min_samples_split=5, random_state=42)
     m.fit(X_train, y_train)
     acc = accuracy_score(y_test, m.predict(X_test))
     m.fit(X, y)
@@ -651,8 +651,11 @@ Be friendly, concise, practical. DO NOT cut off lists. If asked to list crops, l
 
 @app.post("/chat")
 def chat(req: ChatMessage):
-    if not GROK_API_KEY:
+    # Support comma-separated keys; pick the first one
+    grok_pool = [k.strip() for k in GROK_API_KEY.split(",") if k.strip()]
+    if not grok_pool:
         return {"reply": "Chatbot is not configured. Please add GROK_API_KEY to .env file."}
+    active_key = grok_pool[0]
 
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
     for h in req.history[-6:]:
@@ -690,9 +693,12 @@ async def chat_file(
 
     # ---- IMAGE: use Gemini Vision ----
     if ext in ("jpg", "jpeg", "png", "webp", "gif"):
-        gemini_key = os.getenv("GEMINI_API_KEY", "")
-        if not gemini_key:
+        # Support multiple keys
+        gem_pool = [k.strip() for k in os.getenv("GEMINI_API_KEY", "").split(",") if k.strip()]
+        if not gem_pool:
             return {"reply": "Gemini API key not configured for image analysis."}
+        active_gemini_key = gem_pool[0]
+
         b64 = base64.b64encode(contents).decode("utf-8")
         mime = "image/jpeg" if ext in ("jpg", "jpeg") else f"image/{ext}"
         prompt = f"""{SYSTEM_PROMPT}
@@ -709,7 +715,7 @@ Be specific and practical."""
 
         try:
             # Use stable v1 endpoint
-            url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={gemini_key}"
+            url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={active_gemini_key}"
             resp = http_requests.post(
                 url,
                 json={"contents": [{"parts": [{"text": prompt}, {"inline_data": {"mime_type": mime, "data": b64}}]}],
@@ -751,12 +757,16 @@ Be specific and practical."""
         return {"reply": f"Unsupported file type '.{ext}'. Please upload an image (JPG/PNG), PDF, or TXT file."}
 
     # Send document text to Groq
-    if not GROK_API_KEY:
+    # Support multiple keys for Groq
+    grok_pool = [k.strip() for k in GROK_API_KEY.split(",") if k.strip()]
+    if not grok_pool:
         return {"reply": "Chatbot API key not configured."}
+    active_grok_key = grok_pool[0]
+
     try:
         resp = http_requests.post(
             "https://api.groq.com/openai/v1/chat/completions",
-            headers={"Authorization": f"Bearer {GROK_API_KEY}", "Content-Type": "application/json"},
+            headers={"Authorization": f"Bearer {active_grok_key}", "Content-Type": "application/json"},
             json={"model": "llama-3.3-70b-versatile",
                   "messages": [{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": user_msg}],
                   "max_tokens": 1500, "temperature": 0.5},
