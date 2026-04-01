@@ -18,6 +18,7 @@ GROQ_URL     = "https://api.groq.com/openai/v1/chat/completions"
 # Groq decommissioned 11b-preview. Retrying latest or multimodal fallback.
 GROQ_MODEL   = "llama-3.2-11b-vision-preview"
 KINDWISE_URL = "https://crop.kindwise.com/api/v1/identification"
+NVIDIA_URL   = "https://integrate.api.nvidia.com/v1/chat/completions"
 
 # ---------------------------------------------------------------------------
 # COMPREHENSIVE DISEASE TREATMENT DATABASE
@@ -379,7 +380,62 @@ def _kindwise_predict(api_key: str, image_bytes: bytes) -> dict:
     }
 
 # ---------------------------------------------------------------------------
-# TIER 4: LOCAL PIXEL FALLBACK (when all APIs fail)
+# TIER 4: NVIDIA VISION (Premium Expert Consensus)
+# ---------------------------------------------------------------------------
+def _nvidia_predict(api_key: str, image_bytes: bytes, crop: str) -> dict:
+    if not api_key:
+        raise ValueError("N-Missing")
+
+    expert_prompt = f"""You are a High-Precision Plant Pathology Scanner.
+    Analyze this {crop or 'crop'} image with ultra-precision.
+    - Check for specific fungal structures (pustules, hyphae, necrosis).
+    - Distinguish between nutritional deficiency and pathogen infection.
+    - If it's a wheat head, look for bleaching (scab) vs healthy maturation.
+    
+    Return ONLY JSON:
+    {{"disease": "Precise Name", "confidence": 0.98, "severity": "...", "treatment": "...", "reason": "Detailed pathological evidence."}}"""
+
+    payload = {
+        "model": "nvidia/llama-3.2-nv-vision-70b",
+        "messages": [{
+            "role": "user",
+            "content": [
+                {"type": "text", "text": expert_prompt},
+                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64.b64encode(image_bytes).decode('utf-8')}"}}
+            ]
+        }],
+        "temperature": 0.1,
+        "max_tokens": 512
+    }
+    
+    r = requests.post(NVIDIA_URL, json=payload, headers={"Authorization": f"Bearer {api_key}"}, timeout=30)
+    if r.status_code != 200:
+        # Fallback to another NVIDIA model if first one is busy/rate-limited
+        payload["model"] = "nvidia/vila"
+        r = requests.post(NVIDIA_URL, json=payload, headers={"Authorization": f"Bearer {api_key}"}, timeout=30)
+
+    if r.status_code != 200:
+        raise Exception(f"N-{r.status_code}")
+
+    txt = r.json()["choices"][0]["message"]["content"]
+    res = _parse_json_safely(txt)
+
+    db = _get_treatment_from_db(res.get("disease", ""))
+    
+    return {
+        "disease": res["disease"],
+        "confidence": float(res.get("confidence", 0.95)),
+        "severity": res.get("severity", "Medium"),
+        "treatment": res.get("treatment") or db["treatment"],
+        "fertilizer": db["fertilizer"],
+        "safety": db.get("safety", "Follow ICAR safety standards."),
+        "cost_estimate": db.get("cost_estimate", "Consult local rates."),
+        "reason": res.get("reason", "NVIDIA AI detected symptoms via high-fidelity vision analysis."),
+        "method": "NVIDIA NIM Expert Vision"
+    }
+
+# ---------------------------------------------------------------------------
+# TIER 5: LOCAL PIXEL FALLBACK (when all APIs fail)
 # ---------------------------------------------------------------------------
 def _expert_fallback(image_bytes: bytes, crop: str, errors: list = None) -> dict:
     err_tag = f"[Errors: {', '.join(errors)}]" if errors else ""
@@ -478,10 +534,18 @@ def predict_disease_from_image(image_bytes: bytes, crop: str = None, lat: float 
                 else: break # Network/Timeout errors usually hit the whole pool
         return {"name": name, "res": None, "err": f"{name} Pool Exhausted: {last_e[:30]}"}
 
-    with ThreadPoolExecutor(max_workers=4) as executor:
+    # 🔄 REUSABLE WRAPPER FOR POOLED AND SINGLE KEYS
+    def run_tier(name, func, key_or_pool, *args):
+        # Normalize to list for uniform handling
+        pool = [key_or_pool] if isinstance(key_or_pool, str) else key_or_pool
+        return run_tier_with_rotation(name, func, pool, *args)
+
+    with ThreadPoolExecutor(max_workers=5) as executor:
+        NK_POOL = [k.strip() for k in os.getenv("NVIDIA_API_KEY", "").split(",") if k.strip()]
         futures = [
-            executor.submit(run_tier_with_rotation, "Gemini", _gemini_predict, GK_POOL, image_bytes, c),
-            executor.submit(run_tier_with_rotation, "Groq", _groq_predict, XK_POOL, image_bytes, c),
+            executor.submit(run_tier, "NVIDIA", _nvidia_predict, NK_POOL, image_bytes, c),
+            executor.submit(run_tier, "Gemini", _gemini_predict, GK_POOL, image_bytes, c),
+            executor.submit(run_tier, "Groq", _groq_predict, XK_POOL, image_bytes, c),
             executor.submit(run_tier, "Kindwise", _kindwise_predict, KK, image_bytes)
         ]
         tier_results = [f.result() for f in futures]
@@ -491,8 +555,8 @@ def predict_disease_from_image(image_bytes: bytes, crop: str = None, lat: float 
         else: errs.append(f"{tr['name']}:{tr['err'][:30]}")
 
     if results:
-        # Hierarchical Selection: 1. Groq (Absolute Priority), 2. Gemini, 3. Kindwise
-        tier_order = ["Groq", "Gemini", "Kindwise"]
+        # Hierarchical Selection: 1. NVIDIA (Ultimate Priority), 2. Groq, 3. Gemini, 4. Kindwise
+        tier_order = ["NVIDIA", "Groq", "Gemini", "Kindwise"]
         for tier in tier_order:
             best = next((r for r in results if tier in r.get("method", "")), None)
             if best: break
