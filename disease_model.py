@@ -93,7 +93,7 @@ def _preprocess_image(image_bytes: bytes, max_size: int = 1000) -> bytes:
 
 def _gemini_predict(api_key: str, image_bytes: bytes, crop: str) -> dict:
     if not api_key: raise ValueError("G-Missing")
-    expert_prompt = f"Analyze this image of a {crop or 'plant'} leaf. Identify any disease (e.g., rust, scab, blight, or healthy). Ensure 'disease' contains only the clinical name or 'Healthy'. Return ONLY a JSON object with keys: disease, confidence, severity, treatment, reason."
+    expert_prompt = f"Analyze this image of a {crop or 'plant'} leaf. Identify any disease (e.g., rust, scab, blight, or healthy). Ensure 'disease' contains only the clinical name. Ensure 'severity' is strictly ONE WORD (Low, Medium, High, or Severe). Return ONLY a JSON object with keys: disease, confidence, severity, treatment, reason."
     b = {"contents": [{"parts": [{"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(image_bytes).decode("utf-8")}}, {"text": expert_prompt}]}], "generationConfig": {"temperature": 0.1}}
     endpoints = [
         f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}",
@@ -118,7 +118,7 @@ def _gemini_predict(api_key: str, image_bytes: bytes, crop: str) -> dict:
 
 def _groq_predict(api_key: str, image_bytes: bytes, crop: str) -> dict:
     if not api_key: raise ValueError("X-Missing")
-    expert_prompt = f"Analyze this image of a {crop or 'plant'} leaf. Identify any disease (e.g., rust, scab, blight, or healthy). Ensure 'disease' contains only the clinical name or 'Healthy'. Return ONLY a JSON object with keys: disease, confidence, severity, reason."
+    expert_prompt = f"Analyze this image of a {crop or 'plant'} leaf. Identify any disease (e.g., rust, scab, blight, or healthy). Ensure 'disease' contains only the clinical name. Ensure 'severity' is strictly ONE WORD (Low, Medium, High, or Severe). Return ONLY a JSON object with keys: disease, confidence, severity, reason."
     payload = {"model": GROQ_MODEL, "messages": [{"role": "user", "content": [{"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64.b64encode(image_bytes).decode('utf-8')}"}}, {"type": "text", "text": expert_prompt}]}], "temperature": 0.05}
     r = requests.post(GROQ_URL, json=payload, headers={"Authorization": f"Bearer {api_key}"}, timeout=60)
     if r.status_code != 200: raise Exception(f"X-{r.status_code}")
@@ -214,8 +214,26 @@ def predict_disease_from_image(image_bytes: bytes, crop: str = None, lat: float 
         return best
     return _expert_fallback(image_bytes, c, errs)
 
+def _get_location_name(lat: float, lng: float) -> str:
+    try:
+        url = f"https://nominatim.openstreetmap.org/reverse?format=json&lat={lat}&lon={lng}&zoom=10"
+        r = requests.get(url, headers={'User-Agent': 'FarmAI/1.0 (contact@farmai.com)'}, timeout=5)
+        if r.status_code == 200:
+            data = r.json()
+            address = data.get("address", {})
+            city = address.get("city") or address.get("county") or address.get("state_district")
+            state = address.get("state")
+            if city and state: return f"{city}, {state}"
+            elif state: return state
+        return f"{lat:.2f}, {lng:.2f}"
+    except: return f"{lat:.2f}, {lng:.2f}"
+
 def predict_disease_multiple(image_list: list, crop: str = None, lat: float = None, lng: float = None) -> dict:
     if not image_list: return {"error": "Missing input."}
     res = predict_disease_from_image(image_list[0], crop, lat, lng)
+    
+    if lat and lng:
+        res["location_name"] = _get_location_name(lat, lng)
+        
     res["total_inputs"] = len(image_list)
     return res

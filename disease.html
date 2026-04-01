@@ -130,7 +130,7 @@
                         <div class="bg-white/5 border border-white/5 p-5 rounded-3xl flex flex-col justify-center">
                             <div class="flex items-center justify-between">
                                 <span class="text-[10px] font-black uppercase tracking-widest text-slate-500">Infection Stage</span>
-                                <span id="sevVal" class="text-[11px] font-black uppercase text-white px-3 py-1 rounded-lg bg-white/10">...</span>
+                                <span id="sevVal" class="text-[11px] font-black uppercase text-white px-3 py-1 rounded-lg bg-white/10 max-w-[120px] truncate" title="">...</span>
                             </div>
                         </div>
                     </div>
@@ -387,7 +387,10 @@
             document.getElementById('reasonText').textContent = data.reason || 'AI neural pattern matching results.';
             document.getElementById('safetyText').textContent = data.safety || 'Follow chemical SDS and wear protective gear.';
             document.getElementById('costText').textContent = data.cost_estimate || 'Calculated per regional pricing.';
-            document.getElementById('sevVal').textContent = data.severity || 'Medium';
+            const severity = data.severity || 'Medium';
+            const sevEl = document.getElementById('sevVal');
+            sevEl.textContent = severity;
+            sevEl.title = severity;
             
             if(data.wrong_inputs > 0) {
                 document.getElementById('wrongInputBadge').classList.remove('hidden');
