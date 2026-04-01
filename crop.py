@@ -835,3 +835,15 @@ def serve_chatbot(): return FileResponse("chatbot.html")
 
 @app.get("/googlebf6a1bb40761389f.html")
 def serve_google_verification(): return FileResponse("googlebf6a1bb40761389f.html")
+
+from typing import Dict, Any
+from explanation_engine import generate_farmer_explanation
+
+@app.post("/explain")
+async def explain_disease(data: Dict[str, Any]):
+    return generate_farmer_explanation(
+        disease=data.get("disease", ""),
+        confidence=data.get("confidence", 0.0),
+        stage=data.get("stage") or data.get("severity", "Moderate")
+    )
+
