@@ -93,7 +93,7 @@ def _preprocess_image(image_bytes: bytes, max_size: int = 1000) -> bytes:
 
 def _gemini_predict(api_key: str, image_bytes: bytes, crop: str) -> dict:
     if not api_key: raise ValueError("G-Missing")
-    expert_prompt = f"Plant Pathologist Scan for {crop or 'crop'}. If you see Bright Orange/Yellow spots, it is likely RUST. return JSON: disease, confidence, severity, treatment, reason."
+    expert_prompt = f"Analyze this image of a {crop or 'plant'} leaf. Identify any disease (e.g., rust, scab, blight, or healthy). Ensure 'disease' contains only the clinical name or 'Healthy'. Return ONLY a JSON object with keys: disease, confidence, severity, treatment, reason."
     b = {"contents": [{"parts": [{"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(image_bytes).decode("utf-8")}}, {"text": expert_prompt}]}], "generationConfig": {"temperature": 0.1}}
     endpoints = [
         f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}",
@@ -118,7 +118,7 @@ def _gemini_predict(api_key: str, image_bytes: bytes, crop: str) -> dict:
 
 def _groq_predict(api_key: str, image_bytes: bytes, crop: str) -> dict:
     if not api_key: raise ValueError("X-Missing")
-    expert_prompt = f"Precise Pathologist Review. CROP: {crop}. NOTE: Bright orange spots are RUST, not scab. Return JSON: disease, confidence, severity, reason."
+    expert_prompt = f"Analyze this image of a {crop or 'plant'} leaf. Identify any disease (e.g., rust, scab, blight, or healthy). Ensure 'disease' contains only the clinical name or 'Healthy'. Return ONLY a JSON object with keys: disease, confidence, severity, reason."
     payload = {"model": GROQ_MODEL, "messages": [{"role": "user", "content": [{"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64.b64encode(image_bytes).decode('utf-8')}"}}, {"type": "text", "text": expert_prompt}]}], "temperature": 0.05}
     r = requests.post(GROQ_URL, json=payload, headers={"Authorization": f"Bearer {api_key}"}, timeout=60)
     if r.status_code != 200: raise Exception(f"X-{r.status_code}")
@@ -209,9 +209,8 @@ def predict_disease_from_image(image_bytes: bytes, crop: str = None, lat: float 
             errs.append(f"ConsensusTimeout: {str(e)[:15]}")
 
     if results:
-        # Hierarchical Selection: trust Gemini/Groq most for Tree pathology
-        best = next((r for r in results if "Gemini" in r["method"]), None) or next((r for r in results if "Groq" in r["method"]), results[0])
-        best["disease"] = f"[{SERVER_VERSION}] {best['disease']}"
+        # Hierarchical Selection: trust Groq most, then Gemini
+        best = next((r for r in results if "Groq" in r["method"]), None) or next((r for r in results if "Gemini" in r["method"]), results[0])
         return best
     return _expert_fallback(image_bytes, c, errs)
 
