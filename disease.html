@@ -390,8 +390,13 @@
             }
 
             const conf = (data.confidence * 100);
-            document.getElementById('confVal').textContent = conf.toFixed(1) + '%';
-            setTimeout(() => document.getElementById('confBar').style.width = conf + '%', 100);
+            const displayConf = isNaN(conf) ? 0.0 : conf;
+            document.getElementById('confVal').textContent = displayConf.toFixed(1) + '%';
+            setTimeout(() => document.getElementById('confBar').style.width = displayConf + '%', 100);
+            
+            if (data.method && data.method.includes('Error')) {
+                alert("Diagnostic Cluster Warning: " + data.reason);
+            }
         }
 
         function retake() {

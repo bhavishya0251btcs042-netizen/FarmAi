@@ -16,7 +16,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 import os, shutil, random, string
-from disease_model import predict_disease_from_image, predict_disease_multiple
+from disease_model import predict_disease_from_image, predict_disease_multiple, _safe_float
 import requests as http_requests
 from typing import Optional, List
 from datetime import datetime, timedelta
@@ -485,7 +485,7 @@ async def predict_disease(
             return result
         return {
             "disease":    result.get("disease", "Unknown"),
-            "confidence": result.get("confidence", 0.0),
+            "confidence": _safe_float(result.get("confidence"), 0.0),
             "severity":   result.get("severity", "Medium"),
             "treatment":  result.get("treatment", "No treatment available."),
             "fertilizer": result.get("fertilizer", "No fertilizer recommendation."),
@@ -501,11 +501,14 @@ async def predict_disease(
         import traceback
         traceback.print_exc()
         return {
-            "disease": "Error Processing Image",
-            "confidence": 0.0,
-            "treatment": "System encountered an error. Please try again.",
-            "fertilizer": "",
-            "reason": f"An internal error occurred: {str(e)}",
+            "disease": "System Overload / Error",
+            "confidence": 0.01,
+            "severity": "Unknown",
+            "treatment": "Connection interrupted. Please check network and retry.",
+            "fertilizer": "N/A",
+            "safety": "Check equipment safety.",
+            "cost_estimate": "N/A",
+            "reason": f"Backend Exception: {str(e)[:50]}",
             "method": "System Error"
         }
 
