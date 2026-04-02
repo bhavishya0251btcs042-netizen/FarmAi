@@ -28,12 +28,12 @@ Return EXACTLY matching this JSON schema:
   "precautions": ["<Safety/Prevention step 1>", "<Safety/Prevention step 2>"]
 }}
 """
-    # Using Gemini 2.5 flash as we know it's incredibly fast and accurate for this workspace
+    # Using stable Gemini 1.5 Flash for the highest speed and reliability
     api_key = os.getenv("GEMINI_API_KEY", "")
     if not api_key:
         raise ValueError("AI Key missing for Explanation Engine.")
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={api_key}"
     payload = {
         "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": {"temperature": 0.2, "response_mime_type": "application/json"}

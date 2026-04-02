@@ -96,8 +96,10 @@ def _gemini_predict(api_key: str, image_bytes: bytes, crop: str) -> dict:
     expert_prompt = f"Analyze this image of a {crop or 'plant'} leaf. Identify any disease (e.g., rust, scab, blight, or healthy). Ensure 'disease' contains only the clinical name. Ensure 'severity' is strictly ONE WORD (Low, Medium, High, or Severe). Return ONLY a JSON object with keys: disease, confidence, severity, treatment, reason."
     b = {"contents": [{"parts": [{"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(image_bytes).decode("utf-8")}}, {"text": expert_prompt}]}], "generationConfig": {"temperature": 0.1}}
     endpoints = [
-        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}",
-        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+        f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={api_key}",
+        f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key={api_key}",
+        f"https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key={api_key}",
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
     ]
     r = None
     for url in endpoints:
