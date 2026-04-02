@@ -439,7 +439,18 @@ def predict(req: PredictRequest, current_user: str = Depends(get_current_user)):
             {
                 "crop": classes[i], 
                 "probability": float(probs[i]),
-                "economics": CROP_ECONOMICS.get(classes[i].lower(), CROP_ECONOMICS["default"])
+                "economics": CROP_ECONOMICS.get(classes[i].lower(), CROP_ECONOMICS["default"]),
+                "summary": generate_crop_explanation(
+                    crop=classes[i],
+                    compatibility=float(probs[i]),
+                    temp=req.temperature,
+                    rainfall=req.rainfall,
+                    ph=req.ph,
+                    n=req.nitrogen,
+                    p=req.phosphorus,
+                    k=req.potassium,
+                    yield_range=CROP_ECONOMICS.get(classes[i].lower(), CROP_ECONOMICS["default"]).get("yield", "N/A")
+                )
             } for i in idx
         ]
     }
@@ -495,7 +506,8 @@ async def predict_disease(
             "reason":     result.get("reason", "Diagnosis based on AI visual analysis."),
             "method":     result.get("method", ""),
             "wrong_inputs": result.get("wrong_inputs", 0),
-            "total_inputs": result.get("total_inputs", len(image_list))
+            "total_inputs": result.get("total_inputs", len(image_list)),
+            "gradcam_url": generate_gradcam_overlay(image_list[0]) if image_list else ""
         }
     except Exception as e:
         import traceback
@@ -715,7 +727,7 @@ Be specific and practical."""
 
         try:
             # Use stable v1beta endpoint
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={active_gemini_key}"
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={active_gemini_key}"
             resp = http_requests.post(
                 url,
                 json={"contents": [{"parts": [{"text": prompt}, {"inline_data": {"mime_type": mime, "data": b64}}]}],
@@ -838,6 +850,8 @@ def serve_google_verification(): return FileResponse("googlebf6a1bb40761389f.htm
 
 from typing import Dict, Any
 from explanation_engine import generate_farmer_explanation
+from explanation_engine_crop import generate_explanation as generate_crop_explanation
+from gradcam import generate_gradcam_overlay
 
 @app.post("/explain")
 async def explain_disease(data: Dict[str, Any]):

@@ -33,7 +33,7 @@ Return EXACTLY matching this JSON schema:
     if not api_key:
         raise ValueError("AI Key missing for Explanation Engine.")
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
     payload = {
         "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": {"temperature": 0.2, "response_mime_type": "application/json"}
@@ -46,7 +46,14 @@ Return EXACTLY matching this JSON schema:
     try:
         data = response.json()
         raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
-        return json.loads(raw_text)
+        raw_text = raw_text.strip()
+        if raw_text.startswith("```json"):
+            raw_text = raw_text[7:]
+        if raw_text.startswith("```"):
+            raw_text = raw_text[3:]
+        if raw_text.endswith("```"):
+            raw_text = raw_text[:-3]
+        return json.loads(raw_text.strip())
     except Exception as e:
         raise Exception(f"Parsing AI Response Failed: {str(e)}")
 

@@ -1,0 +1,100 @@
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torchvision import models, transforms
+import cv2
+import numpy as np
+from PIL import Image
+import io, base64
+
+class GradCAM:
+    def __init__(self, model, target_layer):
+        self.model = model
+        self.target_layer = target_layer
+        self.gradients = None
+        self.activations = None
+        
+        # Register hooks
+        self.target_layer.register_forward_hook(self.save_activation)
+        self.target_layer.register_backward_hook(self.save_gradient)
+
+    def save_activation(self, module, input, output):
+        self.activations = output
+
+    def save_gradient(self, module, grad_input, grad_output):
+        self.gradients = grad_output[0]
+
+    def generate(self, image_tensor, target_class=None):
+        # Forward pass
+        logit = self.model(image_tensor)
+        
+        if target_class is None:
+            target_class = torch.argmax(logit, dim=1).item()
+            
+        # Backward pass
+        self.model.zero_grad()
+        logit[0, target_class].backward()
+        
+        # Weight the channels by the gradients
+        weights = torch.mean(self.gradients, dim=(2, 3), keepdim=True)
+        cam = torch.sum(weights * self.activations, dim=1, keepdim=True)
+        
+        # ReLU to keep only positive influence
+        cam = F.relu(cam)
+        
+        # Normalize
+        cam = cam - torch.min(cam)
+        cam = cam / (torch.max(cam) + 1e-7)
+        
+        return cam.squeeze().cpu().detach().numpy()
+
+# Initialize a global model for localization expertise
+# Optimized for CPU usage in production
+_DEVICE = torch.device("cpu")
+_MODEL = models.resnet50(pretrained=True).to(_DEVICE).eval()
+# ResNet50 last convolutional layer is typically layer4
+_TARGET_LAYER = _MODEL.layer4[-1] 
+_GCAM = GradCAM(_MODEL, _TARGET_LAYER)
+
+_TRANSFORMS = transforms.Compose([
+    transforms.Resize((224, 224)),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+])
+
+def generate_gradcam_overlay(image_bytes: bytes):
+    """
+    Analyzes image using ResNet backbone and returns a base64 encoded Grad-CAM overlay.
+    """
+    try:
+        # Load and transform image
+        original_img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        w, h = original_img.size
+        
+        input_tensor = _TRANSFORMS(original_img).unsqueeze(0).to(_DEVICE).requires_grad_(True)
+        
+        # Generate Heatmap
+        heatmap = _GCAM.generate(input_tensor)
+        
+        # Resize heatmap back to original size
+        heatmap_resized = cv2.resize(heatmap, (w, h))
+        
+        # Apply Jet colormap
+        heatmap_color = cv2.applyColorMap(np.uint8(255 * heatmap_resized), cv2.COLORMAP_JET)
+        heatmap_color = cv2.cvtColor(heatmap_color, cv2.COLOR_BGR2RGB)
+        
+        # Overlay
+        original_arr = np.array(original_img)
+        overlay = cv2.addWeighted(original_arr, 0.6, heatmap_color, 0.4, 0)
+        
+        # Encode back to base64 for web delivery
+        res_img = Image.fromarray(overlay)
+        buf = io.BytesIO()
+        res_img.save(buf, format="JPEG", quality=85)
+        
+        encoded = base64.b64encode(buf.getvalue()).decode("utf-8")
+        return f"data:image/jpeg;base64,{encoded}"
+        
+    except Exception as e:
+        print(f"Grad-CAM Error: {e}")
+        return ""

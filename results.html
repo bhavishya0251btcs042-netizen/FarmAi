@@ -219,6 +219,9 @@
                             class="inline-block px-4 py-1 rounded-full bg-brand-500 text-white text-[10px] font-black uppercase tracking-[0.2em] mb-6 shadow-lg shadow-brand-500/20">99.3%
                             Optimal</span>
                         <h3 class="text-slate-400 text-lg font-bold mb-1">Primary Recommendation</h3>
+                        <p id="farmerExplanation" class="text-sm text-slate-100 font-medium mb-6 leading-relaxed bg-brand-500/10 border border-brand-500/20 p-4 rounded-2xl backdrop-blur-md">
+                            Analyzing land viability...
+                        </p>
                         <div class="flex items-center gap-4 mb-8">
                             <div
                                 class="w-16 h-16 rounded-full border-2 border-brand-500/30 overflow-hidden shadow-lg shadow-brand-500/10">
@@ -354,6 +357,10 @@
                     document.getElementById("expectedYield").innerHTML = `<i class="fas fa-chart-line text-brand-500 mr-2"></i> ~${best.economics.yield}/acre`;
                     document.getElementById("estimatedProfit").innerHTML = `<i class="fas fa-sack-dollar text-brand-500 mr-2"></i> ${best.economics.profit}/acre`;
                 }
+                
+                if (best.summary) {
+                    document.getElementById("farmerExplanation").textContent = best.summary;
+                }
             };
 
             const saveToHistory = async (best, inputs) => {
@@ -468,6 +475,7 @@
                 <span class="text-xs font-bold text-brand-500">${(s.probability * 100).toFixed(1)}%</span>
                 <i class="fas fa-circle-check text-[10px] text-brand-500/30"></i>
              </div>
+             <p class="text-[10px] text-slate-400 mt-2 line-clamp-2 font-medium">${s.summary || ''}</p>
           </div>
         `;
             });

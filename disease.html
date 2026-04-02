@@ -83,7 +83,11 @@
                             <i class="fas fa-cloud-arrow-up text-3xl text-brand-500"></i>
                         </div>
                         <h4 class="text-xl font-bold text-white mb-2">Diagnostic Data Source</h4>
-                        <p class="text-slate-500 text-sm mb-10 max-w-[260px] mx-auto">Upload multiple leaf snapshots for deep neural verification.</p>
+                        <p class="text-slate-500 text-sm mb-4 mx-auto">Upload leaf snapshots for deep neural verification.</p>
+                        <div class="mb-8 text-[11px] text-brand-400 bg-brand-500/10 border border-brand-500/20 px-3 py-2 rounded-xl flex items-start gap-2 text-left max-w-[300px] mx-auto font-medium">
+                            <i class="fas fa-info-circle mt-0.5 text-brand-500"></i>
+                            <span>First upload a single file. If you do not get a satisfactory result, then try to upload more files for better accuracy.</span>
+                        </div>
                         
                         <button onclick="document.getElementById('fileInput').click()" class="px-10 py-5 rounded-2xl bg-brand-500 text-white font-black uppercase tracking-widest shadow-xl shadow-brand-500/20 hover:bg-brand-600 hover:-translate-y-1 transition-all">Select Images</button>
                         <input type="file" id="fileInput" accept="image/*" multiple class="hidden" onchange="handleFiles(this.files)">
@@ -167,12 +171,28 @@
                             </div>
                         </div>
 
-                        <div class="p-8 rounded-[2rem] border border-yellow-500/10 bg-yellow-500/[0.02]">
+                        <div class="p-8 rounded-[2rem] border border-yellow-500/10 bg-yellow-500/[0.02] mb-5">
                             <div class="flex items-center gap-2 mb-4">
                                 <i class="fas fa-brain text-yellow-400 text-xs"></i>
                                 <h4 class="text-[10px] font-black text-yellow-400 uppercase tracking-[0.3em]">AI Visual Evidence</h4>
                             </div>
                             <p id="reasonText" class="text-xs text-yellow-100/60 leading-relaxed font-medium">...</p>
+                        </div>
+                        
+                        <!-- Grad-CAM Visualization -->
+                        <div id="gradCamArea" class="hidden p-8 rounded-[2rem] border border-brand-500/20 bg-brand-500/5 transition-all">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-eye text-brand-500 text-xs"></i>
+                                    <h4 class="text-[10px] font-black text-brand-500 uppercase tracking-[0.3em]">AI Focus Area</h4>
+                                </div>
+                                <button onclick="toggleHeatmap()" class="px-3 py-1 rounded-lg bg-brand-500/10 border border-brand-500/20 text-[9px] font-bold text-brand-500 hover:bg-brand-500 hover:text-white transition-all uppercase">Toggle Heatmap</button>
+                            </div>
+                            <div class="relative rounded-2xl overflow-hidden border border-white/10 group cursor-pointer" onclick="toggleHeatmap()">
+                                <img id="origPreview" class="w-full h-auto object-cover">
+                                <img id="heatmapPreview" class="absolute inset-0 w-full h-auto object-cover opacity-0 transition-opacity duration-500">
+                                <div class="absolute bottom-2 right-2 px-2 py-1 bg-black/60 rounded text-[8px] text-white font-bold uppercase tracking-widest backdrop-blur-md">Click to Scan Area</div>
+                            </div>
                         </div>
                     </div>
                     
@@ -391,8 +411,8 @@
             
             const token = localStorage.getItem('token');
             scannerLine.style.display = 'block';
-            preScan.classList.add('hidden');
             resultContent.classList.add('hidden');
+            document.getElementById('gradCamArea').classList.add('hidden');
             video.classList.add('opacity-30');
 
             const fd = new FormData();
@@ -469,9 +489,28 @@
             document.getElementById('confVal').textContent = displayConf.toFixed(1) + '%';
             setTimeout(() => document.getElementById('confBar').style.width = displayConf + '%', 100);
             
+            if (data.gradcam_url) {
+                document.getElementById('gradCamArea').classList.remove('hidden');
+                document.getElementById('heatmapPreview').src = data.gradcam_url;
+                // Use the first image in the queue as original reference
+                if (imageQueue.length > 0) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => { document.getElementById('origPreview').src = e.target.result; };
+                    reader.readAsDataURL(imageQueue[0]);
+                }
+            } else {
+                document.getElementById('gradCamArea').classList.add('hidden');
+            }
+
             if (data.method && data.method.includes('Error')) {
                 alert("Diagnostic Cluster Warning: " + data.reason);
             }
+        }
+        
+        let heatmapVisible = false;
+        function toggleHeatmap() {
+            heatmapVisible = !heatmapVisible;
+            document.getElementById('heatmapPreview').style.opacity = heatmapVisible ? '1' : '0';
         }
 
         function retake() {
@@ -496,6 +535,10 @@
                     body: JSON.stringify({...lastDiagnosticData, language: lang, area: area})
                 });
                 const data = await res.json();
+                
+                if (!res.ok) {
+                    throw new Error(data.detail || "Unknown AI backend error");
+                }
                 
                 document.getElementById('aiTitle').textContent = data.title;
                 document.getElementById('aiSummary').textContent = data.summary;
