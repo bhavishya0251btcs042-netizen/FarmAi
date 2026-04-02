@@ -16,6 +16,8 @@ pandas>=2.2.2
 scikit-learn>=1.5.0
 joblib==1.4.2
 Pillow==10.4.0
+torch
+torchvision
 
 # Vision & PDF Tools (Production Headless)
 # Use headless to avoid GUI-based OOM/Crash on Render/Railway
