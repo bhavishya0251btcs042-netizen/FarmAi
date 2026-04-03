@@ -33,10 +33,10 @@ Return EXACTLY matching this JSON schema:
     if not api_key:
         raise ValueError("AI Key missing for Explanation Engine.")
 
-    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={api_key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
     payload = {
         "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {"temperature": 0.2, "response_mime_type": "application/json"}
+        "generationConfig": {"temperature": 0.2, "responseMimeType": "application/json"}
     }
     
     response = requests.post(url, json=payload, timeout=20)
