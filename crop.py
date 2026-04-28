@@ -27,10 +27,9 @@ from disease_model import predict_disease_from_image, predict_disease_multiple, 
 from gradcam import generate_gradcam_overlay
 from pymongo import MongoClient
 from dotenv import load_dotenv
-
-load_dotenv()
+from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-
+app = FastAPI()  
 app.mount("/static", StaticFiles(directory="."), name="static")
 # ----------------------------------------
 # CONFIG
