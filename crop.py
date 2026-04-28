@@ -24,7 +24,7 @@ from jose import jwt
 from disease_model import predict_disease_from_image, predict_disease_multiple
 from disease_model import _safe_float
 from disease_model import predict_disease_from_image, predict_disease_multiple, _safe_float
-from gradcam import generate_gradcam_overlay
+from gradcam import generate_gradcam_overlays
 from pymongo import MongoClient
 from dotenv import load_dotenv
 
@@ -870,7 +870,26 @@ async def explain_disease(data: Dict[str, Any]):
         confidence=data.get("confidence", 0.0),
         stage=data.get("stage") or data.get("severity", "Moderate")
     )
+from gtts import gTTS
+import base64
+import io
 
+def generate_voice_base64(text, language="en"):
+    try:
+        # fallback language
+        if language not in ["en", "hi"]:
+            language = "en"
+
+        tts = gTTS(text=text, lang=language)
+        buf = io.BytesIO()
+        tts.write_to_fp(buf)
+
+        audio_bytes = buf.getvalue()
+        return "data:audio/mp3;base64," + base64.b64encode(audio_bytes).decode()
+
+    except Exception as e:
+        print("TTS ERROR:", e)
+        return ""
 @app.post("/full-explain")
 async def full_explain_disease(data: Dict[str, Any]):
     disease = data.get("disease", "")
