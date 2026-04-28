@@ -4,10 +4,10 @@ uvicorn==0.30.6
 python-multipart==0.0.12
 
 # Database & Security
-pymongo[srv]==4.8.0
+pymongo==4.8.0
 passlib[bcrypt]==1.7.4
 python-jose[cryptography]==3.3.0
-bcrypt==3.2.2
+bcrypt==4.0.1
 
 # Machine Learning & Processing
 # Pinning versions for Python 3.13 stability
@@ -17,8 +17,9 @@ scikit-learn>=1.5.0
 joblib==1.4.2
 Pillow==10.4.0
 --extra-index-url https://download.pytorch.org/whl/cpu
-torch
-torchvision
+torch==2.1.0
+torchvision==0.16.0
+transformers==4.36.0
 
 # Vision & PDF Tools (Production Headless)
 # Use headless to avoid GUI-based OOM/Crash on Render/Railway

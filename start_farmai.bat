@@ -19,10 +19,6 @@ if errorlevel 1 (
 )
 
 echo  [1/3] Installing dependencies (first run installs AI model ~500MB)...
-python -m pip install "bcrypt==4.0.1" --quiet
-python -m pip install "pymongo[srv]==4.6.1" --quiet
-python -m pip install torch==2.1.0 --index-url https://download.pytorch.org/whl/cpu --quiet
-python -m pip install transformers==4.36.0 --quiet
 python -m pip install -r requirements.txt --quiet
 if errorlevel 1 (
     echo  [ERROR] Failed to install dependencies.
