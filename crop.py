@@ -24,7 +24,7 @@ from jose import jwt
 from disease_model import predict_disease_from_image, predict_disease_multiple
 from disease_model import _safe_float
 from disease_model import predict_disease_from_image, predict_disease_multiple, _safe_float
-from gradcam import generate_gradcam_overlayss
+from gradcam import generate_gradcam_overlay
 from pymongo import MongoClient
 from dotenv import load_dotenv
 
