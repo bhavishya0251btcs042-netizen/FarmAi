@@ -535,7 +535,12 @@
             imageQueue = [];
             updateQueueUI();
         }
-
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert("Please login first");
+            window.location.href = '/login-page';
+            return;
+        }
         async function analyzeImages() {
             if (imageQueue.length === 0) return;
 
@@ -556,7 +561,7 @@
             }
 
             try {
-                const res = fetch(`${BASE_URL}/predict-disease`, {
+                const res = await fetch(`${BASE_URL}/predict-disease`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}` },
                     body: fd,
@@ -564,7 +569,7 @@
 
                 if (res.status === 401) {
                     alert("Unauthorized! Please log in first to use the Diagnostic Engine.");
-                    window.location.href = '/login';
+                    window.location.href = '/login-page';
                     return;
                 }
 
