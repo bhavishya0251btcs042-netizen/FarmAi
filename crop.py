@@ -16,7 +16,6 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 import os, shutil, random, string
-from disease_model import predict_disease_from_image, predict_disease_multiple, _safe_float
 import requests as http_requests
 from typing import Optional, List
 from datetime import datetime, timedelta
@@ -82,7 +81,8 @@ def generate_otp():
 # ML MODEL
 # ----------------------------------------
 def train_and_persist_model():
-    csv_path = "Crop_recommendation/Crop_recommendation.csv"
+    BASE_DIR = os.path.dirname(__file__)
+    csv_path = os.path.join(BASE_DIR, "Crop_recommendation", "Crop_recommendation.csv")
     if not os.path.exists(csv_path):
         raise FileNotFoundError(f"Training data not found at {csv_path}")
     df = pd.read_csv(csv_path)
@@ -93,17 +93,25 @@ def train_and_persist_model():
     m.fit(X_train, y_train)
     acc = accuracy_score(y_test, m.predict(X_test))
     m.fit(X, y)
-    joblib.dump({"model": m, "features": feature_cols, "accuracy": acc}, "crop_model.joblib")
+    model_save_path = os.path.join(BASE_DIR, "crop_model.joblib")
+    joblib.dump({"model": m, "features": feature_cols, "accuracy": acc}, model_save_path)
     return m, feature_cols, acc
 
 def load_model():
-    if os.path.exists("crop_model.joblib"):
+    import os
+    import joblib
+
+    BASE_DIR = os.path.dirname(__file__)
+    model_path = os.path.join(BASE_DIR, "crop_model.joblib")
+
+    if os.path.exists(model_path):
         try:
-            data = joblib.load("crop_model.joblib")
+            data = joblib.load(model_path)
             if "accuracy" in data:
                 return data["model"], data["features"], data["accuracy"]
         except:
             pass
+
     return train_and_persist_model()
 
 model, feature_names, model_accuracy = load_model()
@@ -850,8 +858,6 @@ def serve_google_verification(): return FileResponse("googlebf6a1bb40761389f.htm
 
 from typing import Dict, Any
 from explanation_engine import generate_farmer_explanation
-from explanation_engine_crop import generate_explanation as generate_crop_explanation
-from gradcam import generate_gradcam_overlay
 
 @app.post("/explain")
 async def explain_disease(data: Dict[str, Any]):
@@ -863,8 +869,6 @@ async def explain_disease(data: Dict[str, Any]):
 
 @app.post("/full-explain")
 async def full_explain_disease(data: Dict[str, Any]):
-    from intelligent_assistant import generate_ai_explanation, estimate_cost, generate_voice_base64
-    
     disease = data.get("disease", "")
     confidence = float(data.get("confidence", 1.0))
     stage = data.get("stage") or data.get("severity", "Moderate")
@@ -889,6 +893,11 @@ async def full_explain_disease(data: Dict[str, Any]):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+from fastapi.responses import FileResponse
+
+@app.get("/favicon.ico")
+def favicon():
+    return FileResponse("favicon.ico")
 if __name__ == "__main__":
     import uvicorn, os
     port = int(os.environ.get("PORT", 8000))

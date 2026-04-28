@@ -11,7 +11,7 @@ bcrypt==4.0.1
 
 # Machine Learning & Processing
 # Pinning versions for Python 3.13 stability
-numpy>=2.1.1
+numpy==1.26.4
 pandas>=2.2.2
 scikit-learn>=1.5.0
 joblib==1.4.2
