@@ -404,7 +404,7 @@
         let imageQueue = []; // Array of Blobs
         let currentMode = 'camera';
 
-        function setMode(mode) {
+        window.setMode = function (mode) {
             currentMode = mode;
             const camModeBtn = document.getElementById('camModeBtn');
             const upModeBtn = document.getElementById('upModeBtn');
@@ -535,13 +535,13 @@
             imageQueue = [];
             updateQueueUI();
         }
-        const token = localStorage.getItem('token');
-        if (!token) {
-            alert("Please login first");
-            window.location.href = '/login-page';
-            return;
-        }
         async function analyzeImages() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert("Please login first");
+                window.location.href = '/login-page';
+                return;
+            }
             if (imageQueue.length === 0) return;
 
             const token = localStorage.getItem('token');
@@ -664,7 +664,7 @@
             btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Synthesizing Intelligence...`;
             btn.disabled = true;
             try {
-                const res = fetch(`${BASE_URL}/full-explain`, {
+                const res = await fetch(`${BASE_URL}/full-explain`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ ...lastDiagnosticData, language: lang, area: area })
