@@ -37,6 +37,11 @@ RUN find . -type d -name "__pycache__" -exec rm -rf {} + && \
 # Railway dynamic port binding configuration
 ENV PORT=8000
 EXPOSE 8000
+# WRONG (exec form - no shell expansion)
+CMD ["uvicorn", "crop:app", "--host", "0.0.0.0", "--port", "$PORT"]
 
-# Start the FastAPI application via Uvicorn
-CMD ["sh", "-c", "uvicorn crop:app --host 0.0.0.0 --port ${PORT}"]
+# CORRECT (shell form)
+CMD uvicorn crop:app --host 0.0.0.0 --port $PORT
+
+# OR CORRECT (exec form via sh)
+CMD ["sh", "-c", "uvicorn crop:app --host 0.0.0.0 --port $PORT"]
