@@ -23,6 +23,8 @@ from passlib.context import CryptContext
 from jose import jwt
 from disease_model import predict_disease_from_image, predict_disease_multiple
 from disease_model import _safe_float
+# At the top of crop.py, replace your existing import line with:
+from intelligent_assistant import generate_ai_explanation, estimate_cost, generate_voice_base64
 from disease_model import predict_disease_from_image, predict_disease_multiple, _safe_float
 from gradcam import generate_gradcam_overlay
 from pymongo import MongoClient
