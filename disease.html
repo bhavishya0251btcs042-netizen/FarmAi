@@ -536,12 +536,6 @@
             updateQueueUI();
         }
         async function analyzeImages() {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                alert("Please login first");
-                window.location.href = '/login-page';
-                return;
-            }
             if (imageQueue.length === 0) return;
 
             const token = localStorage.getItem('token');
